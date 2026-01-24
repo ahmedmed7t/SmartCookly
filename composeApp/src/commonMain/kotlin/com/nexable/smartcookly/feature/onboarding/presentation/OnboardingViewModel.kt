@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nexable.smartcookly.feature.onboarding.data.OnboardingDataCache
 import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
+import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,9 @@ class OnboardingViewModel : ViewModel() {
             selectedCuisines = OnboardingDataCache.selectedCuisines.toSet(),
             otherCuisineText = OnboardingDataCache.otherCuisineText ?: "",
             selectedDietaryStyle = OnboardingDataCache.selectedDietaryStyle,
-            otherDietaryStyleText = OnboardingDataCache.otherDietaryStyleText ?: ""
+            otherDietaryStyleText = OnboardingDataCache.otherDietaryStyleText ?: "",
+            avoidedIngredients = OnboardingDataCache.avoidedIngredients.toSet(),
+            otherIngredientText = OnboardingDataCache.otherIngredientText ?: ""
         )
     }
     
@@ -94,6 +97,42 @@ class OnboardingViewModel : ViewModel() {
         OnboardingDataCache.otherDietaryStyleText = text.ifBlank { null }
     }
     
+    fun toggleIngredientSelection(ingredient: Ingredient) {
+        val currentSelected = _uiState.value.avoidedIngredients.toMutableSet()
+        
+        if (ingredient == Ingredient.OTHER) {
+            // Toggle other text field visibility
+            val showOther = !_uiState.value.showOtherIngredientTextField
+            _uiState.value = _uiState.value.copy(
+                showOtherIngredientTextField = showOther,
+                avoidedIngredients = if (showOther) {
+                    currentSelected.apply { add(ingredient) }
+                } else {
+                    currentSelected.apply { remove(ingredient) }
+                }
+            )
+        } else {
+            if (currentSelected.contains(ingredient)) {
+                currentSelected.remove(ingredient)
+            } else {
+                currentSelected.add(ingredient)
+            }
+            _uiState.value = _uiState.value.copy(avoidedIngredients = currentSelected)
+        }
+        
+        // Update cache
+        OnboardingDataCache.avoidedIngredients = currentSelected
+    }
+    
+    fun updateOtherIngredientText(text: String) {
+        _uiState.value = _uiState.value.copy(otherIngredientText = text)
+        OnboardingDataCache.otherIngredientText = text.ifBlank { null }
+    }
+    
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+    
     fun completeOnboarding(onComplete: () -> Unit) {
         viewModelScope.launch {
             // Save final data to cache (will be sent to Firestore later)
@@ -101,6 +140,8 @@ class OnboardingViewModel : ViewModel() {
             OnboardingDataCache.otherCuisineText = _uiState.value.otherCuisineText.ifBlank { null }
             OnboardingDataCache.selectedDietaryStyle = _uiState.value.selectedDietaryStyle
             OnboardingDataCache.otherDietaryStyleText = _uiState.value.otherDietaryStyleText.ifBlank { null }
+            OnboardingDataCache.avoidedIngredients = _uiState.value.avoidedIngredients.toMutableSet()
+            OnboardingDataCache.otherIngredientText = _uiState.value.otherIngredientText.ifBlank { null }
             onComplete()
         }
     }

@@ -14,6 +14,7 @@ import com.nexable.smartcookly.feature.onboarding.presentation.components.Onboar
 import com.nexable.smartcookly.feature.onboarding.presentation.components.OnboardingTopBar
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.CuisineSelectionStep
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.DietaryStyleSelectionStep
+import com.nexable.smartcookly.feature.onboarding.presentation.steps.IngredientsAvoidanceStep
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -96,13 +97,18 @@ fun OnboardingScreen(
                             )
                         }
                         3 -> {
-                            // Step 3: Placeholder for next question
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = androidx.compose.ui.Alignment.Center
-                            ) {
-                                Text("Step 3 - Coming Soon")
-                            }
+                            // Step 3: Ingredients to Avoid
+                            IngredientsAvoidanceStep(
+                                avoidedIngredients = uiState.avoidedIngredients,
+                                otherIngredientText = uiState.otherIngredientText,
+                                showOtherTextField = uiState.showOtherIngredientTextField,
+                                onIngredientToggle = { ingredient ->
+                                    viewModel.toggleIngredientSelection(ingredient)
+                                },
+                                onOtherTextChange = { text ->
+                                    viewModel.updateOtherIngredientText(text)
+                                }
+                            )
                         }
                         4 -> {
                             // Step 4: Placeholder for next question
