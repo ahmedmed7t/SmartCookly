@@ -26,6 +26,7 @@ lifecycleViewModel = "2.9.4"
 uuid = "0.8.4"
 firebase-bom = "34.8.0"
 google-services-plugin = "4.4.2"
+multiplatformSettings = "1.2.0"
 
 
 [libraries]
@@ -64,6 +65,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 uuid = { module = "com.benasher44:uuid", version.ref = "uuid" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

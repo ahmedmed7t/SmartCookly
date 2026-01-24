@@ -63,6 +63,7 @@ kotlin {
 
             implementation(libs.gitlive.firebase.auth)
             implementation(libs.uuid)
+            implementation(libs.multiplatform.settings)
 
         }
         iosMain.dependencies {

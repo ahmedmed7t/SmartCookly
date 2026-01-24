@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
  */
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1E7F5C),
+    primary = Color(0xFF16cb8a),//#15eca3
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFF16664A).copy(alpha = 0.2f),
     onPrimaryContainer = Color(0xFF1F2D2A),
@@ -26,7 +26,7 @@ private val LightColorScheme = lightColorScheme(
     tertiaryContainer = Color(0xFFF2C94C).copy(alpha = 0.25f),
     onTertiaryContainer = Color(0xFF1F2D2A),
 
-    background = Color(0xFFF6F7F5),
+    background = Color(0xFFf6f8f7),
     onBackground = Color(0xFF1F2D2A),
 
     surface = Color(0xFFFFFFFF),

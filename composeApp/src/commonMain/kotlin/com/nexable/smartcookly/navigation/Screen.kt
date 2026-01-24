@@ -1,6 +1,8 @@
 package com.nexable.smartcookly.navigation
 
 sealed class Screen(val route: String) {
+    data object Onboarding : Screen("onboarding")
+    data object Login : Screen("login")
     data object Home : Screen("home")
     data object Fridge : Screen("fridge")
     data object Favorites : Screen("favorites")
