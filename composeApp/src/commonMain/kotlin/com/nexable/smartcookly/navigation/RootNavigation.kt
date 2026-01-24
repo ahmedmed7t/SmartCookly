@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nexable.smartcookly.data.local.AppPreferences
 import com.nexable.smartcookly.feature.auth.presentation.LoginScreen
+import com.nexable.smartcookly.feature.auth.presentation.SignUpScreen
 import com.nexable.smartcookly.feature.onboarding.presentation.LoginEncouragementScreen
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingScreen
 import org.koin.compose.koinInject
@@ -65,7 +66,50 @@ fun RootNavigation() {
             }
             
             composable(Screen.Login.route) {
-                LoginScreen()
+                LoginScreen(
+                    onLoginSuccess = {
+                        // Navigate to app and clear entire back stack
+                        navController.navigate(Screen.App.route) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onSignUpClick = {
+                        navController.navigate(Screen.SignUp.route)
+                    },
+                    onContinueAsGuestClick = {
+                        // Navigate to app and clear entire back stack
+                        navController.navigate(Screen.App.route) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+            }
+            
+            composable(Screen.SignUp.route) {
+                SignUpScreen(
+                    onSignUpSuccess = {
+                        // Navigate to app and clear entire back stack
+                        navController.navigate(Screen.App.route) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onLoginClick = {
+                        navController.popBackStack()
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.App.route) {
+                AppNavigation()
             }
         }
     }

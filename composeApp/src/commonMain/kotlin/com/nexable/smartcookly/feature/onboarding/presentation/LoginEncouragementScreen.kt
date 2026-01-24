@@ -78,7 +78,7 @@ fun LoginEncouragementScreen(
 
                 // Title
                 Text(
-                    text = "Save Your Preferences",
+                    text = "Keep Your Data Centralized",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -88,7 +88,7 @@ fun LoginEncouragementScreen(
 
                 // Subtitle
                 Text(
-                    text = "Create an account to save your preferences and get personalized meal recommendations tailored to your dietary needs.",
+                    text = "Login to keep all your preferences, recipes, and fridge data safely stored in the cloud. Access your information from any device and unlock exclusive features available only to logged-in users.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
