@@ -16,6 +16,13 @@ class AppPreferences(private val settings: Settings) {
         settings.putBoolean(KEY_ONBOARDING_COMPLETED, completed)
     }
     
+    fun isGuestMode(): Boolean = 
+        settings.getBoolean(KEY_GUEST_MODE, false)
+    
+    fun setGuestMode(enabled: Boolean) {
+        settings.putBoolean(KEY_GUEST_MODE, enabled)
+    }
+    
     // Onboarding data persistence
     fun saveOnboardingData(
         currentStep: Int,
@@ -142,6 +149,7 @@ class AppPreferences(private val settings: Settings) {
     
     companion object {
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_GUEST_MODE = "guest_mode"
         private const val KEY_CURRENT_STEP = "onboarding_current_step"
         private const val KEY_SELECTED_CUISINES = "onboarding_selected_cuisines"
         private const val KEY_OTHER_CUISINE_TEXT = "onboarding_other_cuisine_text"

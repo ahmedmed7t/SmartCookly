@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nexable.smartcookly.data.local.AppPreferences
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.auth.presentation.LoginScreen
 import com.nexable.smartcookly.feature.auth.presentation.SignUpScreen
 import com.nexable.smartcookly.feature.onboarding.presentation.LoginEncouragementScreen
@@ -20,14 +21,30 @@ import org.koin.compose.koinInject
 fun RootNavigation() {
     val navController = rememberNavController()
     val appPreferences: AppPreferences = koinInject()
+    val authRepository: AuthRepository = koinInject()
     
     var startDestination by remember { mutableStateOf<String?>(null) }
     
     LaunchedEffect(Unit) {
-        startDestination = if (appPreferences.isOnboardingCompleted()) {
-            Screen.Login.route
-        } else {
-            Screen.Onboarding.route
+        // Check if user is already authenticated (Firebase persists sessions automatically)
+        val currentUser = authRepository.getCurrentUser()
+        startDestination = when {
+            currentUser != null -> {
+                // User is logged in, go to home
+                Screen.App.route
+            }
+            appPreferences.isGuestMode() -> {
+                // User chose guest mode previously, go to home
+                Screen.App.route
+            }
+            appPreferences.isOnboardingCompleted() -> {
+                // Onboarding completed but not logged in, show login
+                Screen.Login.route
+            }
+            else -> {
+                // First time user, show onboarding
+                Screen.Onboarding.route
+            }
         }
     }
     
@@ -68,6 +85,8 @@ fun RootNavigation() {
             composable(Screen.Login.route) {
                 LoginScreen(
                     onLoginSuccess = {
+                        // Clear guest mode when user logs in
+                        appPreferences.setGuestMode(false)
                         // Navigate to app and clear entire back stack
                         navController.navigate(Screen.App.route) {
                             popUpTo(0) {
@@ -79,6 +98,8 @@ fun RootNavigation() {
                         navController.navigate(Screen.SignUp.route)
                     },
                     onContinueAsGuestClick = {
+                        // Persist guest mode preference
+                        appPreferences.setGuestMode(true)
                         // Navigate to app and clear entire back stack
                         navController.navigate(Screen.App.route) {
                             popUpTo(0) {
@@ -92,6 +113,8 @@ fun RootNavigation() {
             composable(Screen.SignUp.route) {
                 SignUpScreen(
                     onSignUpSuccess = {
+                        // Clear guest mode when user signs up
+                        appPreferences.setGuestMode(false)
                         // Navigate to app and clear entire back stack
                         navController.navigate(Screen.App.route) {
                             popUpTo(0) {
