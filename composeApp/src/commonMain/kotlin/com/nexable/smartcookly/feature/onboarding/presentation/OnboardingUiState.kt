@@ -1,5 +1,6 @@
 package com.nexable.smartcookly.feature.onboarding.presentation
 
+import com.nexable.smartcookly.feature.onboarding.data.model.CookingLevel
 import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
@@ -8,7 +9,7 @@ import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
 
 data class OnboardingUiState(
     val currentStep: Int = 1,
-    val totalSteps: Int = 5,
+    val totalSteps: Int = 6,
     val selectedCuisines: Set<Cuisine> = emptySet(),
     val otherCuisineText: String = "",
     val showOtherTextField: Boolean = false,
@@ -24,5 +25,6 @@ data class OnboardingUiState(
     val selectedDiseases: Set<Disease> = emptySet(),
     val otherDiseaseText: String = "",
     val showOtherDiseaseTextField: Boolean = false,
+    val selectedCookingLevel: CookingLevel? = null,
     val searchQuery: String = ""
 )

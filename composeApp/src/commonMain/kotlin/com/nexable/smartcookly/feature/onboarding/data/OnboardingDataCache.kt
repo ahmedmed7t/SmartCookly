@@ -1,5 +1,6 @@
 package com.nexable.smartcookly.feature.onboarding.data
 
+import com.nexable.smartcookly.feature.onboarding.data.model.CookingLevel
 import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
@@ -17,6 +18,7 @@ object OnboardingDataCache {
     var otherDislikedIngredientText: String? = null
     var selectedDiseases: MutableSet<Disease> = mutableSetOf()
     var otherDiseaseText: String? = null
+    var selectedCookingLevel: CookingLevel? = null
     var currentStep: Int = 1
     
     fun clear() {
@@ -30,6 +32,7 @@ object OnboardingDataCache {
         otherDislikedIngredientText = null
         selectedDiseases.clear()
         otherDiseaseText = null
+        selectedCookingLevel = null
         currentStep = 1
     }
 }

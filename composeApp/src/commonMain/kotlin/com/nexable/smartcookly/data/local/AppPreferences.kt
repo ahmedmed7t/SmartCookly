@@ -1,5 +1,6 @@
 package com.nexable.smartcookly.data.local
 
+import com.nexable.smartcookly.feature.onboarding.data.model.CookingLevel
 import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
@@ -27,7 +28,8 @@ class AppPreferences(private val settings: Settings) {
         dislikedIngredients: Set<DislikedIngredient>,
         otherDislikedIngredientText: String?,
         selectedDiseases: Set<Disease>,
-        otherDiseaseText: String?
+        otherDiseaseText: String?,
+        selectedCookingLevel: CookingLevel?
     ) {
         settings.putInt(KEY_CURRENT_STEP, currentStep)
         settings.putString(KEY_SELECTED_CUISINES, selectedCuisines.joinToString(",") { it.name })
@@ -40,6 +42,7 @@ class AppPreferences(private val settings: Settings) {
         settings.putString(KEY_OTHER_DISLIKED_INGREDIENT_TEXT, otherDislikedIngredientText ?: "")
         settings.putString(KEY_SELECTED_DISEASES, selectedDiseases.joinToString(",") { it.name })
         settings.putString(KEY_OTHER_DISEASE_TEXT, otherDiseaseText ?: "")
+        settings.putString(KEY_SELECTED_COOKING_LEVEL, selectedCookingLevel?.name ?: "")
     }
     
     fun loadOnboardingData(): OnboardingData {
@@ -87,6 +90,10 @@ class AppPreferences(private val settings: Settings) {
         val otherDiseaseText = settings.getString(KEY_OTHER_DISEASE_TEXT, "")
             .takeIf { it.isNotEmpty() }
         
+        val selectedCookingLevel = settings.getString(KEY_SELECTED_COOKING_LEVEL, "")
+            .takeIf { it.isNotEmpty() }
+            ?.let { runCatching { CookingLevel.valueOf(it) }.getOrNull() }
+        
         return OnboardingData(
             currentStep = currentStep,
             selectedCuisines = selectedCuisines,
@@ -98,7 +105,8 @@ class AppPreferences(private val settings: Settings) {
             dislikedIngredients = dislikedIngredients,
             otherDislikedIngredientText = otherDislikedIngredientText,
             selectedDiseases = selectedDiseases,
-            otherDiseaseText = otherDiseaseText
+            otherDiseaseText = otherDiseaseText,
+            selectedCookingLevel = selectedCookingLevel
         )
     }
     
@@ -114,6 +122,7 @@ class AppPreferences(private val settings: Settings) {
         settings.remove(KEY_OTHER_DISLIKED_INGREDIENT_TEXT)
         settings.remove(KEY_SELECTED_DISEASES)
         settings.remove(KEY_OTHER_DISEASE_TEXT)
+        settings.remove(KEY_SELECTED_COOKING_LEVEL)
     }
     
     data class OnboardingData(
@@ -127,7 +136,8 @@ class AppPreferences(private val settings: Settings) {
         val dislikedIngredients: Set<DislikedIngredient>,
         val otherDislikedIngredientText: String?,
         val selectedDiseases: Set<Disease>,
-        val otherDiseaseText: String?
+        val otherDiseaseText: String?,
+        val selectedCookingLevel: CookingLevel?
     )
     
     companion object {
@@ -143,5 +153,6 @@ class AppPreferences(private val settings: Settings) {
         private const val KEY_OTHER_DISLIKED_INGREDIENT_TEXT = "onboarding_other_disliked_ingredient_text"
         private const val KEY_SELECTED_DISEASES = "onboarding_selected_diseases"
         private const val KEY_OTHER_DISEASE_TEXT = "onboarding_other_disease_text"
+        private const val KEY_SELECTED_COOKING_LEVEL = "onboarding_selected_cooking_level"
     }
 }

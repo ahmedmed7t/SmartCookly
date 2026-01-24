@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexable.smartcookly.data.local.AppPreferences
 import com.nexable.smartcookly.feature.onboarding.data.OnboardingDataCache
+import com.nexable.smartcookly.feature.onboarding.data.model.CookingLevel
 import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
@@ -34,7 +35,8 @@ class OnboardingViewModel(
             dislikedIngredients = savedData.dislikedIngredients,
             otherDislikedIngredientText = savedData.otherDislikedIngredientText ?: "",
             selectedDiseases = savedData.selectedDiseases,
-            otherDiseaseText = savedData.otherDiseaseText ?: ""
+            otherDiseaseText = savedData.otherDiseaseText ?: "",
+            selectedCookingLevel = savedData.selectedCookingLevel
         )
         
         // Also sync to cache for temporary state during session
@@ -53,6 +55,7 @@ class OnboardingViewModel(
         OnboardingDataCache.otherDislikedIngredientText = _uiState.value.otherDislikedIngredientText.ifBlank { null }
         OnboardingDataCache.selectedDiseases = _uiState.value.selectedDiseases.toMutableSet()
         OnboardingDataCache.otherDiseaseText = _uiState.value.otherDiseaseText.ifBlank { null }
+        OnboardingDataCache.selectedCookingLevel = _uiState.value.selectedCookingLevel
     }
     
     private fun persistToPreferences() {
@@ -67,7 +70,8 @@ class OnboardingViewModel(
             dislikedIngredients = _uiState.value.dislikedIngredients,
             otherDislikedIngredientText = _uiState.value.otherDislikedIngredientText.ifBlank { null },
             selectedDiseases = _uiState.value.selectedDiseases,
-            otherDiseaseText = _uiState.value.otherDiseaseText.ifBlank { null }
+            otherDiseaseText = _uiState.value.otherDiseaseText.ifBlank { null },
+            selectedCookingLevel = _uiState.value.selectedCookingLevel
         )
         syncToCache()
     }
@@ -238,6 +242,11 @@ class OnboardingViewModel(
     
     fun updateOtherDiseaseText(text: String) {
         _uiState.value = _uiState.value.copy(otherDiseaseText = text)
+        persistToPreferences()
+    }
+    
+    fun selectCookingLevel(level: CookingLevel) {
+        _uiState.value = _uiState.value.copy(selectedCookingLevel = level)
         persistToPreferences()
     }
     

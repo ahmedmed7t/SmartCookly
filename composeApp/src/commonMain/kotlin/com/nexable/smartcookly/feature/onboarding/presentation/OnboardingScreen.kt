@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -18,6 +17,7 @@ import com.nexable.smartcookly.feature.onboarding.presentation.steps.DietaryStyl
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.IngredientsAvoidanceStep
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.DislikedIngredientsStep
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.DiseaseSelectionStep
+import com.nexable.smartcookly.feature.onboarding.presentation.steps.CookingLevelSelectionStep
 import com.nexable.smartcookly.platform.BackHandler
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -143,6 +143,15 @@ fun OnboardingScreen(
                                 },
                                 onOtherTextChange = { text ->
                                     viewModel.updateOtherDiseaseText(text)
+                                }
+                            )
+                        }
+                        6 -> {
+                            // Step 6: Cooking Level
+                            CookingLevelSelectionStep(
+                                selectedCookingLevel = uiState.selectedCookingLevel,
+                                onCookingLevelSelect = { level ->
+                                    viewModel.selectCookingLevel(level)
                                 }
                             )
                         }
