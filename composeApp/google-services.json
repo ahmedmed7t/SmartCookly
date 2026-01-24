@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "87301617477",
+    "project_id": "smart-cookly-872ca",
+    "storage_bucket": "smart-cookly-872ca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:87301617477:android:118317e8ff7b173ff3702c",
+        "android_client_info": {
+          "package_name": "com.nexable.smartcookly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkPxGnYpwRgxwkMJnmeLG7jHd2JMIjWgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

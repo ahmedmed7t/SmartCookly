@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -36,6 +37,8 @@ kotlin {
             implementation(libs.core.splashscreen)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -54,8 +57,13 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.datetime)
 
             implementation(libs.bundles.ktor)
+
+            implementation(libs.gitlive.firebase.auth)
+            implementation(libs.uuid)
+
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

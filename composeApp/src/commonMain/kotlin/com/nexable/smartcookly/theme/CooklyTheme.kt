@@ -1,181 +1,105 @@
-package org.nexable.period_pergnancy_tracker.theme
+package com.nexable.smartcookly.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.nexable.smartcookly.theme.CooklyLightColors
-import com.nexable.smartcookly.theme.CooklyDarkColors
 
 /**
  * Custom Material3 ColorScheme for Light Theme
+ * Using cooking/food-inspired color palette
  */
+
 private val LightColorScheme = lightColorScheme(
-    primary = CooklyLightColors.Primary,
-    onPrimary = CooklyLightColors.TextOnPrimary,
-    primaryContainer = CooklyLightColors.PrimaryVariant,
-    onPrimaryContainer = CooklyLightColors.TextOnPrimary,
-    
-    secondary = CooklyLightColors.Lavender,
-    onSecondary = CooklyLightColors.TextOnPrimary,
-    secondaryContainer = CooklyLightColors.Lavender.copy(alpha = 0.2f),
-    onSecondaryContainer = CooklyLightColors.Plum,
-    
-    tertiary = CooklyLightColors.Plum,
-    onTertiary = CooklyLightColors.TextOnPrimary,
-    tertiaryContainer = CooklyLightColors.Plum.copy(alpha = 0.2f),
-    onTertiaryContainer = CooklyLightColors.TextPrimary,
-    
-    background = CooklyLightColors.Background,
-    onBackground = CooklyLightColors.TextPrimary,
-    
-    surface = CooklyLightColors.Surface,
-    onSurface = CooklyLightColors.TextPrimary,
-    surfaceVariant = CooklyLightColors.BackgroundSecondary,
-    onSurfaceVariant = CooklyLightColors.TextSecondary,
-    
-    error = Color(0xFFBA1A1A),
+    primary = Color(0xFF1E7F5C),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFF16664A).copy(alpha = 0.2f),
+    onPrimaryContainer = Color(0xFF1F2D2A),
+
+    secondary = Color(0xFF9ED6C0),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFF9ED6C0).copy(alpha = 0.25f),
+    onSecondaryContainer = Color(0xFF78C3A6),
+
+    tertiary = Color(0xFFF2C94C),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFF2C94C).copy(alpha = 0.25f),
+    onTertiaryContainer = Color(0xFF1F2D2A),
+
+    background = Color(0xFFF6F7F5),
+    onBackground = Color(0xFF1F2D2A),
+
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF1F2D2A),
+    surfaceVariant = Color(0xFFEEF2EE),
+    onSurfaceVariant = Color(0xFF5F6F6B),
+
+    error = Color(0xFFD32F2F),
     onError = Color(0xFFFFFFFF),
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF410002),
-    
-    outline = CooklyLightColors.Border,
-    outlineVariant = CooklyLightColors.Divider,
-    
+    errorContainer = Color(0xFFD32F2F).copy(alpha = 0.2f),
+    onErrorContainer = Color(0xFFD32F2F),
+
+    outline = Color(0xFFD6DED9),
+    outlineVariant = Color(0xFFE3E9E6),
+
     scrim = Color(0xFF000000),
-    inverseSurface = CooklyLightColors.Plum,
-    inverseOnSurface = CooklyLightColors.TextOnPrimary,
-    inversePrimary = CooklyLightColors.PrimaryVariant,
-    
-    surfaceTint = CooklyLightColors.Primary,
+    inverseSurface = Color(0xFF1F2D2A),
+    inverseOnSurface = Color(0xFFFFFFFF),
+    inversePrimary = Color(0xFF4CAF50),
+
+    surfaceTint = Color(0xFF1E7F5C),
 )
+
 
 /**
  * Custom Material3 ColorScheme for Dark Theme
  */
 private val DarkColorScheme = darkColorScheme(
-    primary = CooklyDarkColors.Primary,
-    onPrimary = CooklyDarkColors.TextPrimary,
-    primaryContainer = CooklyDarkColors.Primary.copy(alpha = 0.3f),
-    onPrimaryContainer = CooklyDarkColors.TextPrimary,
-    
-    secondary = CooklyDarkColors.Lavender,
-    onSecondary = CooklyDarkColors.TextPrimary,
-    secondaryContainer = CooklyDarkColors.Lavender.copy(alpha = 0.2f),
-    onSecondaryContainer = CooklyDarkColors.TextPrimary,
-    
-    tertiary = CooklyDarkColors.Plum,
-    onTertiary = CooklyDarkColors.TextPrimary,
-    tertiaryContainer = CooklyDarkColors.Plum.copy(alpha = 0.2f),
-    onTertiaryContainer = CooklyDarkColors.TextPrimary,
-    
-    background = CooklyDarkColors.Background,
-    onBackground = CooklyDarkColors.TextPrimary,
-    
-    surface = CooklyDarkColors.Surface,
-    onSurface = CooklyDarkColors.TextPrimary,
-    surfaceVariant = CooklyDarkColors.BackgroundSecondary,
-    onSurfaceVariant = CooklyDarkColors.TextSecondary,
-    
-    error = Color(0xFFFFB4AB),
-    onError = Color(0xFF690005),
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
-    
-    outline = CooklyDarkColors.Divider,
-    outlineVariant = CooklyDarkColors.Divider.copy(alpha = 0.5f),
-    
+    primary = Color(0xFF35B48A),
+    onPrimary = Color(0xFF0F1B18),
+    primaryContainer = Color(0xFF2B9C76).copy(alpha = 0.25f),
+    onPrimaryContainer = Color(0xFFEAF4F1),
+
+    secondary = Color(0xFF78C3A6),
+    onSecondary = Color(0xFF0F1B18),
+    secondaryContainer = Color(0xFF78C3A6).copy(alpha = 0.25f),
+    onSecondaryContainer = Color(0xFF5EAE91),
+
+    tertiary = Color(0xFFF2C94C),
+    onTertiary = Color(0xFF0F1B18),
+    tertiaryContainer = Color(0xFFF2C94C).copy(alpha = 0.25f),
+    onTertiaryContainer = Color(0xFFEAF4F1),
+
+    background = Color(0xFF0F1B18),
+    onBackground = Color(0xFFEAF4F1),
+
+    surface = Color(0xFF1A2E2A),
+    onSurface = Color(0xFFEAF4F1),
+    surfaceVariant = Color(0xFF152421),
+    onSurfaceVariant = Color(0xFFB6C9C4),
+
+    error = Color(0xFFEF6C6C),
+    onError = Color(0xFF0F1B18),
+    errorContainer = Color(0xFFEF6C6C).copy(alpha = 0.25f),
+    onErrorContainer = Color(0xFFEF6C6C),
+
+    outline = Color(0xFF35524D),
+    outlineVariant = Color(0xFF2C4440),
+
     scrim = Color(0xFF000000),
-    inverseSurface = CooklyDarkColors.TextPrimary,
-    inverseOnSurface = CooklyDarkColors.Plum,
-    inversePrimary = CooklyDarkColors.Primary,
-    
-    surfaceTint = CooklyDarkColors.Primary,
+    inverseSurface = Color(0xFFEAF4F1),
+    inverseOnSurface = Color(0xFF0F1B18),
+    inversePrimary = Color(0xFF6FD6A8),
+
+    surfaceTint = Color(0xFF35B48A),
 )
-
-/**
- * Custom theme object that provides access to custom colors
- */
-object CooklyTheme {
-    /**
-     * Get the current custom colors based on dark theme
-     */
-    @Composable
-    fun colors(isDark: Boolean = isSystemInDarkTheme()): CooklyThemeColors {
-        return if (isDark) {
-            CooklyThemeColors.Dark
-        } else {
-            CooklyThemeColors.Light
-        }
-    }
-}
-
-/**
- * Sealed class to hold theme-specific custom colors
- */
-sealed class CooklyThemeColors {
-    abstract val background: Color
-    abstract val backgroundSecondary: Color
-    abstract val surface: Color
-    abstract val surfaceElevated: Color
-    abstract val primary: Color
-    abstract val primaryVariant: Color
-    abstract val lavender: Color
-    abstract val plum: Color
-    abstract val textPrimary: Color
-    abstract val textSecondary: Color
-    abstract val textMuted: Color
-    abstract val textOnPrimary: Color
-    abstract val textDisabled: Color
-    abstract val divider: Color
-    abstract val border: Color
-    abstract val disabledBackground: Color
-    
-    object Light : CooklyThemeColors() {
-        override val background = CooklyLightColors.Background
-        override val backgroundSecondary = CooklyLightColors.BackgroundSecondary
-        override val surface = CooklyLightColors.Surface
-        override val surfaceElevated = CooklyLightColors.SurfaceElevated
-        override val primary = CooklyLightColors.Primary
-        override val primaryVariant = CooklyLightColors.PrimaryVariant
-        override val lavender = CooklyLightColors.Lavender
-        override val plum = CooklyLightColors.Plum
-        override val textPrimary = CooklyLightColors.TextPrimary
-        override val textSecondary = CooklyLightColors.TextSecondary
-        override val textMuted = CooklyLightColors.TextMuted
-        override val textOnPrimary = CooklyLightColors.TextOnPrimary
-        override val textDisabled = CooklyLightColors.TextDisabled
-        override val divider = CooklyLightColors.Divider
-        override val border = CooklyLightColors.Border
-        override val disabledBackground = CooklyLightColors.DisabledBackground
-    }
-    
-    object Dark : CooklyThemeColors() {
-        override val background = CooklyDarkColors.Background
-        override val backgroundSecondary = CooklyDarkColors.BackgroundSecondary
-        override val surface = CooklyDarkColors.Surface
-        override val surfaceElevated = CooklyDarkColors.SurfaceElevated
-        override val primary = CooklyDarkColors.Primary
-        override val primaryVariant = CooklyDarkColors.PrimaryVariant
-        override val lavender = CooklyDarkColors.Lavender
-        override val plum = CooklyDarkColors.Plum
-        override val textPrimary = CooklyDarkColors.TextPrimary
-        override val textSecondary = CooklyDarkColors.TextSecondary
-        override val textMuted = CooklyDarkColors.TextMuted
-        override val textOnPrimary = CooklyDarkColors.TextOnPrimary
-        override val textDisabled = CooklyDarkColors.TextDisabled
-        override val divider = CooklyDarkColors.Divider
-        override val border = CooklyDarkColors.Border
-        override val disabledBackground = CooklyDarkColors.DisabledBackground
-    }
-}
 
 /**
  * Custom Material3 Theme composable
  * 
  * Usage:
  * ```
- * PPTheme {
+ * CooklyTheme {
  *     // Your composable content here
  *     YourScreen()
  * }
@@ -198,10 +122,3 @@ fun CooklyTheme(
     )
 }
 
-/**
- * Extension function to get custom theme colors from MaterialTheme
- */
-@Composable
-fun MaterialTheme.cooklyColors(): CooklyThemeColors {
-    return CooklyTheme.colors()
-}

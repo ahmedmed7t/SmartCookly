@@ -1,8 +1,10 @@
 import SwiftUI
+import Firebase
 
 @main
 struct iOSApp: App {
     init() {
+        FirebaseApp.configure()
         InitKoinKt.doInitKoin()
     }
     var body: some Scene {
