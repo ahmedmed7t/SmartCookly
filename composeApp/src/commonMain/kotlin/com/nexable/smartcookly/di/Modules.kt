@@ -28,5 +28,5 @@ val sharedModule = module {
     // ViewModels
     viewModel { FridgeViewModel(get()) }
     viewModel { ReviewScanViewModel(get(), get()) }
-    viewModel { OnboardingViewModel() }
+    viewModel { OnboardingViewModel(get()) }
 }

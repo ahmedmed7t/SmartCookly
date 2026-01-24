@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nexable.smartcookly.data.local.AppPreferences
 import com.nexable.smartcookly.feature.auth.presentation.LoginScreen
-import com.nexable.smartcookly.feature.onboarding.data.OnboardingDataCache
+import com.nexable.smartcookly.feature.onboarding.presentation.LoginEncouragementScreen
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingScreen
 import org.koin.compose.koinInject
 
@@ -33,21 +33,33 @@ fun RootNavigation() {
     startDestination?.let { destination ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Onboarding.route
+            startDestination = destination
         ) {
             composable(Screen.Onboarding.route) {
                 OnboardingScreen(
                     onOnboardingComplete = {
-                        // Clear onboarding cache
-                        OnboardingDataCache.clear()
+                        // Navigate to login encouragement screen
+                        // Don't pop onboarding so user can go back to final step
+                        navController.navigate(Screen.LoginEncouragement.route)
+                    }
+                )
+            }
+            
+            composable(Screen.LoginEncouragement.route) {
+                LoginEncouragementScreen(
+                    onLoginClick = {
                         // Mark onboarding as completed
                         appPreferences.setOnboardingCompleted(true)
-                        // Navigate to login
+                        // Navigate to login and clear entire back stack
                         navController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Onboarding.route) {
+                            popUpTo(0) {
                                 inclusive = true
                             }
                         }
+                    },
+                    onBackClick = {
+                        // Pop back to onboarding (will restore to step 5)
+                        navController.popBackStack()
                     }
                 )
             }

@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -15,6 +16,9 @@ import com.nexable.smartcookly.feature.onboarding.presentation.components.Onboar
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.CuisineSelectionStep
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.DietaryStyleSelectionStep
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.IngredientsAvoidanceStep
+import com.nexable.smartcookly.feature.onboarding.presentation.steps.DislikedIngredientsStep
+import com.nexable.smartcookly.feature.onboarding.presentation.steps.DiseaseSelectionStep
+import com.nexable.smartcookly.platform.BackHandler
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -24,6 +28,11 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Handle system back button
+    BackHandler(enabled = uiState.currentStep > 1) {
+        viewModel.goToPreviousStep()
+    }
     
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -49,7 +58,6 @@ fun OnboardingScreen(
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(horizontal = 16.dp)
-//                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
             // Content area with white surface
@@ -64,7 +72,6 @@ fun OnboardingScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-//                        .padding(vertical = 24.dp)
                 ) {
                     // Step content - switch based on current step
                     when (uiState.currentStep) {
@@ -109,15 +116,35 @@ fun OnboardingScreen(
                                     viewModel.updateOtherIngredientText(text)
                                 }
                             )
+
                         }
                         4 -> {
-                            // Step 4: Placeholder for next question
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = androidx.compose.ui.Alignment.Center
-                            ) {
-                                Text("Step 4 - Coming Soon")
-                            }
+                            // Step 4: Disliked Ingredients
+                            DislikedIngredientsStep(
+                                dislikedIngredients = uiState.dislikedIngredients,
+                                otherDislikedIngredientText = uiState.otherDislikedIngredientText,
+                                showOtherTextField = uiState.showOtherDislikedIngredientTextField,
+                                onIngredientToggle = { ingredient ->
+                                    viewModel.toggleDislikedIngredientSelection(ingredient)
+                                },
+                                onOtherTextChange = { text ->
+                                    viewModel.updateOtherDislikedIngredientText(text)
+                                }
+                            )
+                        }
+                        5 -> {
+                            // Step 5: Health Conditions / Diseases
+                            DiseaseSelectionStep(
+                                selectedDiseases = uiState.selectedDiseases,
+                                otherDiseaseText = uiState.otherDiseaseText,
+                                showOtherTextField = uiState.showOtherDiseaseTextField,
+                                onDiseaseToggle = { disease ->
+                                    viewModel.toggleDiseaseSelection(disease)
+                                },
+                                onOtherTextChange = { text ->
+                                    viewModel.updateOtherDiseaseText(text)
+                                }
+                            )
                         }
                         else -> {
                             // Fallback

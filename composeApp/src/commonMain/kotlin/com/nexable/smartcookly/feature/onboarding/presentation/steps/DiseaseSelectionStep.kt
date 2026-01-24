@@ -10,15 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
-import com.nexable.smartcookly.feature.onboarding.presentation.components.SelectableIngredientCard
+import com.nexable.smartcookly.feature.onboarding.data.model.Disease
+import com.nexable.smartcookly.feature.onboarding.presentation.components.SelectableDiseaseCard
 
 @Composable
-fun IngredientsAvoidanceStep(
-    avoidedIngredients: Set<Ingredient>,
-    otherIngredientText: String,
+fun DiseaseSelectionStep(
+    selectedDiseases: Set<Disease>,
+    otherDiseaseText: String,
     showOtherTextField: Boolean,
-    onIngredientToggle: (Ingredient) -> Unit,
+    onDiseaseToggle: (Disease) -> Unit,
     onOtherTextChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -32,7 +32,7 @@ fun IngredientsAvoidanceStep(
         
         // Title
         Text(
-            text = "Any allergies?",
+            text = "Health Conditions",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -41,41 +41,24 @@ fun IngredientsAvoidanceStep(
 
         // Subtitle
         Text(
-            text = "Select any allergens to avoid. We'll filter out recipes containing these ingredients.",
+            text = "Select any health conditions so we can tailor recipes to your dietary needs.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Ingredient grid using LazyColumn with rows
-        val rows = Ingredient.entries.chunked(2)
-
+        // Disease list
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(bottom = 0.dp)
         ) {
-            items(rows) { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    row.forEach { ingredient ->
-                        Box(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            SelectableIngredientCard(
-                                ingredient = ingredient,
-                                isSelected = avoidedIngredients.contains(ingredient),
-                                onClick = { onIngredientToggle(ingredient) }
-                            )
-                        }
-                    }
-                    // Add spacer if odd number of items
-                    if (row.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
+            items(Disease.entries) { disease ->
+                SelectableDiseaseCard(
+                    disease = disease,
+                    isSelected = selectedDiseases.contains(disease),
+                    onClick = { onDiseaseToggle(disease) }
+                )
             }
 
             item {
@@ -83,10 +66,10 @@ fun IngredientsAvoidanceStep(
                 if (showOtherTextField) {
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = otherIngredientText,
+                        value = otherDiseaseText,
                         onValueChange = onOtherTextChange,
-                        label = { Text("Specify other allergen") },
-                        placeholder = { Text("e.g., Latex, Nickel...") },
+                        label = { Text("Specify other health condition") },
+                        placeholder = { Text("e.g., Thyroid, Arthritis...") },
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp)

@@ -10,15 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
-import com.nexable.smartcookly.feature.onboarding.presentation.components.SelectableIngredientCard
+import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
+import com.nexable.smartcookly.feature.onboarding.presentation.components.SelectableDislikedIngredientCard
 
 @Composable
-fun IngredientsAvoidanceStep(
-    avoidedIngredients: Set<Ingredient>,
-    otherIngredientText: String,
+fun DislikedIngredientsStep(
+    dislikedIngredients: Set<DislikedIngredient>,
+    otherDislikedIngredientText: String,
     showOtherTextField: Boolean,
-    onIngredientToggle: (Ingredient) -> Unit,
+    onIngredientToggle: (DislikedIngredient) -> Unit,
     onOtherTextChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -32,7 +32,7 @@ fun IngredientsAvoidanceStep(
         
         // Title
         Text(
-            text = "Any allergies?",
+            text = "Anything off the menu?",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -41,14 +41,14 @@ fun IngredientsAvoidanceStep(
 
         // Subtitle
         Text(
-            text = "Select any allergens to avoid. We'll filter out recipes containing these ingredients.",
+            text = "Select ingredients you don't like. We'll avoid recipes with these ingredients.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
         // Ingredient grid using LazyColumn with rows
-        val rows = Ingredient.entries.chunked(2)
+        val rows = DislikedIngredient.entries.chunked(2)
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -64,9 +64,9 @@ fun IngredientsAvoidanceStep(
                         Box(
                             modifier = Modifier.weight(1f)
                         ) {
-                            SelectableIngredientCard(
+                            SelectableDislikedIngredientCard(
                                 ingredient = ingredient,
-                                isSelected = avoidedIngredients.contains(ingredient),
+                                isSelected = dislikedIngredients.contains(ingredient),
                                 onClick = { onIngredientToggle(ingredient) }
                             )
                         }
@@ -83,10 +83,10 @@ fun IngredientsAvoidanceStep(
                 if (showOtherTextField) {
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = otherIngredientText,
+                        value = otherDislikedIngredientText,
                         onValueChange = onOtherTextChange,
-                        label = { Text("Specify other allergen") },
-                        placeholder = { Text("e.g., Latex, Nickel...") },
+                        label = { Text("Specify other ingredient") },
+                        placeholder = { Text("e.g., Cinnamon, Cumin...") },
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp)
