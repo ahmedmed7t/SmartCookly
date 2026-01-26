@@ -56,7 +56,7 @@ class OpenAIApiClient(
         val imageUrl = "data:image/jpeg;base64,$imageBase64"
         
         val request = ImageAnalysisRequest(
-            model = "gpt-4o",
+            model = "gpt-5-mini",
             messages = listOf(
                 Message(
                     role = "user",
