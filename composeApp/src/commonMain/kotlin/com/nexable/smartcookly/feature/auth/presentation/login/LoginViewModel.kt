@@ -2,6 +2,7 @@ package com.nexable.smartcookly.feature.auth.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexable.smartcookly.feature.auth.data.GoogleSignInProvider
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +56,48 @@ class LoginViewModel(
                 onFailure = { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
+                        error = getErrorMessage(exception)
+                    )
+                }
+            )
+        }
+    }
+    
+    fun signInWithGoogle(googleSignInProvider: GoogleSignInProvider) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isGoogleLoading = true,
+                error = null
+            )
+            
+            val googleCredentialResult = googleSignInProvider.signIn()
+            
+            googleCredentialResult.fold(
+                onSuccess = { googleCredential ->
+                    val result = authRepository.signInWithGoogle(googleCredential)
+                    
+                    result.fold(
+                        onSuccess = {
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                isGoogleLoading = false,
+                                isLoginSuccess = true,
+                                error = null
+                            )
+                        },
+                        onFailure = { exception ->
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                isGoogleLoading = false,
+                                error = getErrorMessage(exception)
+                            )
+                        }
+                    )
+                },
+                onFailure = { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isGoogleLoading = false,
                         error = getErrorMessage(exception)
                     )
                 }

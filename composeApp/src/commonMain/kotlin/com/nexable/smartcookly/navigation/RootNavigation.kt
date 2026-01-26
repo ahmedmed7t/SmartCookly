@@ -96,16 +96,6 @@ fun RootNavigation() {
                     },
                     onSignUpClick = {
                         navController.navigate(Screen.SignUp.route)
-                    },
-                    onContinueAsGuestClick = {
-                        // Persist guest mode preference
-                        appPreferences.setGuestMode(true)
-                        // Navigate to app and clear entire back stack
-                        navController.navigate(Screen.App.route) {
-                            popUpTo(0) {
-                                inclusive = true
-                            }
-                        }
                     }
                 )
             }

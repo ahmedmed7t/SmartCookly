@@ -18,11 +18,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.remember
+import com.nexable.smartcookly.feature.auth.data.GoogleSignInProvider
 import com.nexable.smartcookly.feature.auth.presentation.login.LoginViewModel
+import com.nexable.smartcookly.platform.getActivityContext
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_email
+import smartcookly.composeapp.generated.resources.ic_google
 import smartcookly.composeapp.generated.resources.ic_lock
 import smartcookly.composeapp.generated.resources.ic_login_logo
 import smartcookly.composeapp.generated.resources.ic_visibility
@@ -33,11 +40,16 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit = {},
     onSignUpClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
-    onContinueAsGuestClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val activityContext = getActivityContext()
+    
+    // Create GoogleSignInProvider with Activity context (Android only)
+    val googleSignInProvider = remember(activityContext) {
+        activityContext?.let { GoogleSignInProvider(it) }
+    }
 
     // Navigate on successful authentication
     LaunchedEffect(uiState.isLoginSuccess) {
@@ -263,7 +275,7 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Sign Up Link
             Row(
@@ -286,24 +298,81 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Continue as Guest Button
+            // Divider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                )
+                Text(
+                    text = "OR",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Sign in with Google Button (Light theme per Google branding guidelines)
             OutlinedButton(
-                onClick = { onContinueAsGuestClick() },
+                onClick = { 
+                    googleSignInProvider?.let { 
+                        viewModel.signInWithGoogle(it) 
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
+                enabled = !uiState.isGoogleLoading && !uiState.isLoading && googleSignInProvider != null,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color(0xFFFFFFFF), // Light theme: #FFFFFF
+                    contentColor = Color(0xFF1F1F1F), // Font: #1F1F1F
+                    disabledContainerColor = Color(0xFFF5F5F5),
+                    disabledContentColor = Color(0xFF9E9E9E)
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    Color(0xFF747775) // Stroke: #747775
                 )
             ) {
-                Text(
-                    text = "Continue as Guest",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                if (uiState.isGoogleLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color(0xFF1F1F1F),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.ic_google),
+                            contentDescription = "Google Logo",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Continue with Google",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            color = Color(0xFF1F1F1F)
+                        )
+                    }
+                }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

@@ -12,7 +12,20 @@
           "package_name": "com.nexable.smartcookly"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "87301617477-6thqbd9vp7n5vjgp4iqd36ohb4oniq4o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nexable.smartcookly",
+            "certificate_hash": "36475044f9ba9cb1c73946d44ada0684a187ff7f"
+          }
+        },
+        {
+          "client_id": "87301617477-irhlg876q34g627vqht3dc551vdaa2cj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCkPxGnYpwRgxwkMJnmeLG7jHd2JMIjWgQ"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "87301617477-irhlg876q34g627vqht3dc551vdaa2cj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "87301617477-hbppkuo0gg5pn2rvtvhlpgju4a1qseaa.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nexable.smartcookly.SmartCookly"
+              }
+            }
+          ]
         }
       }
     }

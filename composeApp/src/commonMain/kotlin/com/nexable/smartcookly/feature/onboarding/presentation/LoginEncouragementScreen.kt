@@ -78,7 +78,7 @@ fun LoginEncouragementScreen(
 
                 // Title
                 Text(
-                    text = "Keep Your Data Centralized",
+                    text = "Unlock All App Features",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -88,7 +88,7 @@ fun LoginEncouragementScreen(
 
                 // Subtitle
                 Text(
-                    text = "Login to keep all your preferences, recipes, and fridge data safely stored in the cloud. Access your information from any device and unlock exclusive features available only to logged-in users.",
+                    text = "Login to leverage all the powerful features Cookly has to offer. Save your recipes, sync your fridge inventory across devices, personalize your cooking experience, and access exclusive features designed just for logged-in users. Your culinary journey starts with a simple login!",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,

@@ -25,6 +25,12 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
         }
+        iosTarget.compilations["main"].cinterops {
+            val GoogleSignIn by creating {
+                definitionFile.set(project.file("src/nativeInterop/cinterop/GoogleSignIn.def"))
+                includeDirs("${project.rootDir}/iosApp/iosApp")
+            }
+        }
     }
 
     sourceSets {
@@ -38,6 +44,11 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
             implementation(project.dependencies.platform(libs.firebase.bom))
+            
+            // Google Sign-In dependencies
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.play)
+            implementation(libs.googleid)
 
         }
         commonMain.dependencies {

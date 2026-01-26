@@ -1,0 +1,4 @@
+language = Objective-C
+package = cocoapods.GoogleSignIn
+headers = GoogleSignInHelper.h
+compilerOpts = -framework GoogleSignIn -framework Foundation -framework UIKit

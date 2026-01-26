@@ -18,6 +18,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeScreen
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanScreen
+import com.nexable.smartcookly.feature.home.presentation.HomeScreen
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
@@ -76,19 +77,19 @@ fun AppNavigation() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Fridge.route,
+            startDestination = Screen.Home.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(Screen.Home.route) {
-//                FridgeScreen(
-//                    onNavigateToCamera = {
-//                        // TODO open system camera app to pick only one image
-//                    },
-//                    onNavigateToReviewScan = { imageBase64 ->
-//                        ImageCache.storeImage(imageBase64)
-//                        navController.navigate(Screen.ReviewScan.route)
-//                    }
-//                )
+                HomeScreen(
+                    onScanFridgeClick = {
+                        // Navigate to fridge screen or camera
+                        navController.navigate(Screen.Fridge.route)
+                    },
+                    onProfileClick = {
+                        navController.navigate(Screen.Profile.route)
+                    }
+                )
             }
             composable(Screen.Fridge.route) {
                 FridgeScreen(
