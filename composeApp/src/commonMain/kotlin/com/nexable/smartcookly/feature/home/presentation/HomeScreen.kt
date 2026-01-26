@@ -16,12 +16,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_chef
 import smartcookly.composeapp.generated.resources.ic_cooking
@@ -32,10 +35,19 @@ import smartcookly.composeapp.generated.resources.ic_user
 @Composable
 fun HomeScreen(
     onScanFridgeClick: () -> Unit = {},
+    onStartCookingClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    authRepository: AuthRepository = koinInject()
 ) {
     val greeting = getGreeting()
+    val currentUser = authRepository.getCurrentUser()
+    val displayName = currentUser?.displayName?.takeIf { it.isNotBlank() }
+    val chefName = if (displayName != null) {
+        "Chef, $displayName"
+    } else {
+        "Smart Chef"
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -50,12 +62,13 @@ fun HomeScreen(
             // Header Section
             HomeHeader(
                 greeting = greeting,
+                chefName = chefName,
                 onProfileClick = onProfileClick,
             )
 
             // AI Cooking Banner
             AICookingBanner(
-                onScanFridgeClick = onScanFridgeClick,
+                onStartCookingClick = onStartCookingClick,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
@@ -68,17 +81,20 @@ fun HomeScreen(
 @Composable
 private fun HomeHeader(
     greeting: String,
+    chefName: String,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(
+            modifier = Modifier.weight(1f, fill = false)
+        ) {
             Text(
                 text = greeting,
                 style = MaterialTheme.typography.bodyMedium,
@@ -86,15 +102,36 @@ private fun HomeHeader(
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "Smart Chef",
+                text = chefName,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
-
-        Row {
+        Spacer(modifier = Modifier.width(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
             // Fav Icon
+            IconButton(
+                onClick = {},
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Color(0xFF16664A).copy(alpha = 0.1f) // Light brown background
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_heart),
+                    contentDescription = "Favourite",
+                    tint = Color(0xFF16664A), // Brown color
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+            // Profile Icon
             IconButton(
                 onClick = onProfileClick,
                 modifier = Modifier
@@ -105,29 +142,10 @@ private fun HomeHeader(
                     )
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_heart),
-                    contentDescription = "Favourite",
-                    tint = Color(0xFF16664A), // Brown color
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(10.dp))
-            // Profile Icon
-            IconButton(
-                onClick = onProfileClick,
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Color(0xFF16664A).copy(alpha = 0.1f) // Light brown background
-                    )
-            ) {
-                Icon(
                     painter = painterResource(Res.drawable.ic_chef),
                     contentDescription = "Profile",
-                    tint = Color(0xFF16664A), // Brown color
-                    modifier = Modifier.size(44.dp)
+                    tint = Color(0xFF16664A),
+                    modifier = Modifier.size(40.dp)
                 )
             }
         }
@@ -137,7 +155,7 @@ private fun HomeHeader(
 
 @Composable
 private fun AICookingBanner(
-    onScanFridgeClick: () -> Unit,
+    onStartCookingClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -244,9 +262,9 @@ private fun AICookingBanner(
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    // Scan Fridge Button - positioned at bottom
+                    // Start Cooking Button - positioned at bottom
                     Button(
-                        onClick = onScanFridgeClick,
+                        onClick = onStartCookingClick,
                         modifier = Modifier
                             .height(48.dp),
                         shape = RoundedCornerShape(12.dp),

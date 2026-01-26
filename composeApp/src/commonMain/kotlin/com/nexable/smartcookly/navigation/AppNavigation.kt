@@ -24,9 +24,7 @@ import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeScreen
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanScreen
 import com.nexable.smartcookly.feature.home.presentation.HomeScreen
-import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
@@ -61,7 +59,7 @@ fun AppNavigation(
                 val bottomNavItems = listOf(
                     BottomNavItem(Screen.Home, "HOME", Res.drawable.ic_home),
                     BottomNavItem(Screen.Fridge, "FRIDGE", Res.drawable.ic_fridge),
-                    BottomNavItem(Screen.Favorites, "FAVORITES", Res.drawable.ic_ingredient),
+                    BottomNavItem(Screen.Recipes, "RECIPES", Res.drawable.ic_ingredient),
                     BottomNavItem(Screen.Shopping, "SHOPPING", Res.drawable.ic_shopping_cart),
                 )
                 
@@ -101,6 +99,16 @@ fun AppNavigation(
                         // Navigate to fridge screen or camera
                         navController.navigate(Screen.Fridge.route)
                     },
+                    onStartCookingClick = {
+                        // Navigate to Recipes screen (tab 3)
+                        navController.navigate(Screen.Recipes.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     onProfileClick = {
                         onNavigateToProfile()
                     }
@@ -118,7 +126,7 @@ fun AppNavigation(
                 )
             }
             
-            composable(Screen.Favorites.route) {
+            composable(Screen.Recipes.route) {
                 // Placeholder for Recipes screen
                 Text("Recipes Screen - Coming Soon")
             }

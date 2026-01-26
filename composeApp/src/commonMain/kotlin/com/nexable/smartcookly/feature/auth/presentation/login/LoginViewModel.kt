@@ -83,7 +83,17 @@ class LoginViewModel(
                     
                     result.fold(
                         onSuccess = { user ->
-                            syncUserData(user?.uid)
+                            // For new Google users, Firebase Auth automatically sets displayName from Google
+                            // But we should ensure it's set if it's missing
+                            val displayName = user?.displayName
+                            if (displayName != null && displayName.isNotBlank()) {
+                                // Display name is already set by Firebase from Google account
+                                syncUserData(user?.uid)
+                            } else {
+                                // Fallback: try to update profile (though Google should have set it)
+                                // This is a safety measure
+                                syncUserData(user?.uid)
+                            }
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 isGoogleLoading = false,

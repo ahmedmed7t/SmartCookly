@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.CookingLevelSelectionStep
 import kotlinx.coroutines.launch
@@ -27,15 +28,20 @@ fun EditCookingLevelScreen(
 ) {
     val selectedCookingLevel by viewModel.selectedCookingLevel.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
-    
+
     LaunchedEffect(Unit) {
         viewModel.loadCurrentPreferences()
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Cooking Level") },
+                title = {
+                    Text(
+                        "Edit Cooking Level",
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp)
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -56,7 +62,9 @@ fun EditCookingLevelScreen(
                 tonalElevation = 8.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                 ) {
                     val scope = rememberCoroutineScope()
                     Button(

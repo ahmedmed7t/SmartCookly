@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.DietaryStyleSelectionStep
@@ -38,7 +39,10 @@ fun EditDietaryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Dietary Preferences") },
+                title = { Text(
+                    "Edit Dietary Preferences",
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp)
+                ) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -59,7 +63,9 @@ fun EditDietaryScreen(
                 tonalElevation = 8.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                 ) {
                     val scope = rememberCoroutineScope()
                     Button(

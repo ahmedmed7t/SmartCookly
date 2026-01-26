@@ -28,7 +28,7 @@ fun CuisineSelectionStep(
             .padding(horizontal = 16.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         // Title
         Text(
             text = "What do you love to eat?",

@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
 import com.nexable.smartcookly.feature.onboarding.presentation.steps.IngredientsAvoidanceStep
@@ -40,15 +41,20 @@ fun EditAllergiesScreen(
     val otherIngredientText by viewModel.otherIngredientText.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
     val showOtherTextField = avoidedIngredients.contains(Ingredient.OTHER)
-    
+
     LaunchedEffect(Unit) {
         viewModel.loadCurrentPreferences()
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Allergies & Restrictions") },
+                title = {
+                    Text(
+                        text = "Edit Allergies & Restrictions",
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp)
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -69,7 +75,9 @@ fun EditAllergiesScreen(
                 tonalElevation = 8.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                 ) {
                     val scope = rememberCoroutineScope()
                     Button(

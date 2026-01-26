@@ -17,13 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.profile.presentation.components.ProfilePreferenceItem
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_antibacterial
 import smartcookly.composeapp.generated.resources.ic_back
+import smartcookly.composeapp.generated.resources.ic_check
+import smartcookly.composeapp.generated.resources.ic_close
 import smartcookly.composeapp.generated.resources.ic_dietary
+import smartcookly.composeapp.generated.resources.ic_edit
 import smartcookly.composeapp.generated.resources.ic_health
 import smartcookly.composeapp.generated.resources.ic_ingredients
 import smartcookly.composeapp.generated.resources.ic_level
@@ -47,19 +51,19 @@ fun ProfileScreen(
     var isEditingName by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf(uiState.displayName) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(refreshKey) {
         viewModel.loadProfile()
     }
-    
+
     LaunchedEffect(uiState.displayName) {
         editedName = uiState.displayName
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile") },
+                title = { Text("Profile", style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -85,7 +89,8 @@ fun ProfileScreen(
             // Name field
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF16664A).copy(alpha = 0.1f))
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
@@ -99,7 +104,8 @@ fun ProfileScreen(
                     if (isEditingName) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             OutlinedTextField(
                                 value = editedName,
@@ -108,6 +114,7 @@ fun ProfileScreen(
                                 singleLine = true
                             )
                             IconButton(
+                                modifier = Modifier.size(24.dp),
                                 onClick = {
                                     if (editedName.isNotBlank()) {
                                         viewModel.updateDisplayName(editedName)
@@ -115,18 +122,28 @@ fun ProfileScreen(
                                     }
                                 }
                             ) {
-//                                Icon(Icons.Default.Check, contentDescription = "Save")
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_check),
+                                    contentDescription = "Save",
+                                    modifier = Modifier.size(18.dp),
+                                )
                             }
                             IconButton(
+                                modifier = Modifier.size(24.dp),
                                 onClick = {
                                     editedName = uiState.displayName
                                     isEditingName = false
                                 }
                             ) {
-//                                Icon(Icons.Default.Close, contentDescription = "Cancel")
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_close),
+                                    contentDescription = "Cancel",
+                                    modifier = Modifier.size(18.dp),
+                                )
                             }
                         }
-                    } else {
+                    }
+                    else {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -138,15 +155,20 @@ fun ProfileScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             IconButton(onClick = { isEditingName = true }) {
-//                                Icon(Icons.Default.Edit, contentDescription = "Edit Name")
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(Res.drawable.ic_edit),
+                                    contentDescription = "Edit Name",
+                                    tint = Color(0xFF16664A)
+                                )
                             }
                         }
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // Cuisines & Diet Section
             Text(
                 text = "Cuisines & Diet",
@@ -154,7 +176,7 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-            
+
             ProfilePreferenceItem(
                 title = "Preferred Cuisines",
                 subtitle = uiState.cuisines.take(3).joinToString(", ")
@@ -164,7 +186,7 @@ fun ProfileScreen(
                 onClick = onEditCuisines,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             ProfilePreferenceItem(
                 title = "Dietary Preferences",
                 subtitle = uiState.dietaryStyle ?: "Not set",
@@ -172,9 +194,9 @@ fun ProfileScreen(
                 onClick = onEditDietary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Health & Allergies Section
             Text(
                 text = "Health & Allergies",
@@ -182,7 +204,7 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-            
+
             ProfilePreferenceItem(
                 title = "Allergies & Restrictions",
                 subtitle = uiState.avoidedIngredients.take(2).joinToString(", ")
@@ -192,7 +214,7 @@ fun ProfileScreen(
                 onClick = onEditAllergies,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             ProfilePreferenceItem(
                 title = "Disliked Ingredients",
                 subtitle = uiState.dislikedIngredients.take(2).joinToString(", ")
@@ -202,7 +224,7 @@ fun ProfileScreen(
                 onClick = onEditDisliked,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             ProfilePreferenceItem(
                 title = "Health Conditions",
                 subtitle = uiState.diseases.take(2).joinToString(", ")
@@ -212,9 +234,9 @@ fun ProfileScreen(
                 onClick = onEditHealth,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Cooking Section
             Text(
                 text = "Cooking",
@@ -222,7 +244,7 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-            
+
             ProfilePreferenceItem(
                 title = "Cooking Level",
                 subtitle = uiState.cookingLevel ?: "Not set",
@@ -230,9 +252,9 @@ fun ProfileScreen(
                 onClick = onEditCookingLevel,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             // Logout button
             Button(
                 onClick = { showLogoutDialog = true },
@@ -244,20 +266,20 @@ fun ProfileScreen(
             ) {
                 Text("Logout")
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
         }
-        
+
         // Logout confirmation dialog
         if (showLogoutDialog) {
             AlertDialog(
                 containerColor = MaterialTheme.colorScheme.background,
                 onDismissRequest = { showLogoutDialog = false },
                 title = {
-                    Text("Logout", color =  Color(0xFF16664A))
+                    Text("Logout", color = Color(0xFF16664A))
                 },
                 text = {
-                    Text("Are you sure you want to logout?", color =  Color(0xFF16664A))
+                    Text("Are you sure you want to logout?", color = Color(0xFF16664A))
                 },
                 confirmButton = {
                     TextButton(
@@ -273,7 +295,7 @@ fun ProfileScreen(
                     TextButton(
                         onClick = { showLogoutDialog = false }
                     ) {
-                        Text("Cancel", color =  Color(0xFF16664A))
+                        Text("Cancel", color = Color(0xFF16664A))
                     }
                 }
             )
