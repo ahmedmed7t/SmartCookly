@@ -2,14 +2,18 @@ package com.nexable.smartcookly.feature.auth.presentation.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexable.smartcookly.data.local.AppPreferences
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
+import com.nexable.smartcookly.feature.user.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SignUpViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SignUpUiState())
     val uiState: StateFlow<SignUpUiState> = _uiState.asStateFlow()
@@ -84,6 +88,7 @@ class SignUpViewModel(
                     
                     authRepository.updateProfile(displayName).fold(
                         onSuccess = {
+                            syncUserData(user?.uid)
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 isSignUpSuccess = true,
@@ -92,6 +97,7 @@ class SignUpViewModel(
                         },
                         onFailure = { error ->
                             // Profile update failed, but user is still created
+                            syncUserData(user?.uid)
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 isSignUpSuccess = true,
@@ -146,6 +152,21 @@ class SignUpViewModel(
     private fun isValidEmail(email: String): Boolean {
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$"
         return emailRegex.toRegex().matches(email)
+    }
+    
+    private suspend fun syncUserData(userId: String?) {
+        if (userId == null) return
+        
+        try {
+            // New user: push local onboarding data to Firestore
+            val localProfile = appPreferences.toUserProfile()
+            println("Firestore: Saving new user profile for userId: $userId")
+            userRepository.saveUserProfile(userId, localProfile)
+            println("Firestore: Successfully saved user profile")
+        } catch (e: Exception) {
+            println("Firestore sync error: ${e.message}")
+            e.printStackTrace()
+        }
     }
     
     private fun getErrorMessage(exception: Throwable): String {

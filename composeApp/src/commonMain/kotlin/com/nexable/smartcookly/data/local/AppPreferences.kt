@@ -6,6 +6,7 @@ import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
 import com.nexable.smartcookly.feature.onboarding.data.model.Disease
 import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
+import com.nexable.smartcookly.feature.user.data.model.UserProfile
 import com.russhwolf.settings.Settings
 
 class AppPreferences(private val settings: Settings) {
@@ -130,6 +131,52 @@ class AppPreferences(private val settings: Settings) {
         settings.remove(KEY_SELECTED_DISEASES)
         settings.remove(KEY_OTHER_DISEASE_TEXT)
         settings.remove(KEY_SELECTED_COOKING_LEVEL)
+    }
+    
+    fun toUserProfile(): UserProfile {
+        val onboardingData = loadOnboardingData()
+        return UserProfile.fromOnboardingData(onboardingData)
+    }
+    
+    fun updateFromUserProfile(profile: UserProfile) {
+        val cuisines = profile.cuisines.mapNotNull { 
+            runCatching { Cuisine.valueOf(it) }.getOrNull() 
+        }.toSet()
+        
+        val dietaryStyle = profile.dietaryStyle?.let { 
+            runCatching { DietaryStyle.valueOf(it) }.getOrNull() 
+        }
+        
+        val avoidedIngredients = profile.avoidedIngredients.mapNotNull { 
+            runCatching { Ingredient.valueOf(it) }.getOrNull() 
+        }.toSet()
+        
+        val dislikedIngredients = profile.dislikedIngredients.mapNotNull { 
+            runCatching { DislikedIngredient.valueOf(it) }.getOrNull() 
+        }.toSet()
+        
+        val diseases = profile.diseases.mapNotNull { 
+            runCatching { Disease.valueOf(it) }.getOrNull() 
+        }.toSet()
+        
+        val cookingLevel = profile.cookingLevel?.let { 
+            runCatching { CookingLevel.valueOf(it) }.getOrNull() 
+        }
+        
+        saveOnboardingData(
+            currentStep = 1, // Reset step when syncing from Firestore
+            selectedCuisines = cuisines,
+            otherCuisineText = profile.otherCuisineText,
+            selectedDietaryStyle = dietaryStyle,
+            otherDietaryStyleText = profile.otherDietaryStyleText,
+            avoidedIngredients = avoidedIngredients,
+            otherIngredientText = profile.otherIngredientText,
+            dislikedIngredients = dislikedIngredients,
+            otherDislikedIngredientText = profile.otherDislikedIngredientText,
+            selectedDiseases = diseases,
+            otherDiseaseText = profile.otherDiseaseText,
+            selectedCookingLevel = cookingLevel
+        )
     }
     
     data class OnboardingData(

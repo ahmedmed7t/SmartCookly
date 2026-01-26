@@ -9,6 +9,7 @@ import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeViewModel
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanViewModel
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingViewModel
+import com.nexable.smartcookly.feature.user.data.repository.UserRepository
 import com.nexable.smartcookly.platform.getOpenAIApiKey
 import com.russhwolf.settings.Settings
 import org.koin.core.module.Module
@@ -25,6 +26,7 @@ val sharedModule = module {
     // Repositories
     single { FridgeRepository() }
     single { AuthRepository() }
+    single { UserRepository() }
     
     // API Clients
     single { OpenAIApiClient(get(), getOpenAIApiKey()) }
@@ -33,6 +35,6 @@ val sharedModule = module {
     viewModel { FridgeViewModel(get()) }
     viewModel { ReviewScanViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
-    viewModel { SignUpViewModel(get()) }
-    viewModel { LoginViewModel(get()) }
+    viewModel { SignUpViewModel(get(), get(), get()) }
+    viewModel { LoginViewModel(get(), get(), get()) }
 }

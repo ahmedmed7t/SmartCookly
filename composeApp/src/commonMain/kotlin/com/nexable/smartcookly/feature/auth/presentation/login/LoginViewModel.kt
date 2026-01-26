@@ -2,15 +2,19 @@ package com.nexable.smartcookly.feature.auth.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexable.smartcookly.data.local.AppPreferences
 import com.nexable.smartcookly.feature.auth.data.GoogleSignInProvider
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
+import com.nexable.smartcookly.feature.user.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -46,7 +50,8 @@ class LoginViewModel(
             val result = authRepository.signIn(state.email, state.password)
             
             result.fold(
-                onSuccess = {
+                onSuccess = { user ->
+                    syncUserData(user?.uid)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isLoginSuccess = true,
@@ -77,7 +82,8 @@ class LoginViewModel(
                     val result = authRepository.signInWithGoogle(googleCredential)
                     
                     result.fold(
-                        onSuccess = {
+                        onSuccess = { user ->
+                            syncUserData(user?.uid)
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 isGoogleLoading = false,
@@ -107,6 +113,31 @@ class LoginViewModel(
     
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+    
+    private suspend fun syncUserData(userId: String?) {
+        if (userId == null) return
+        
+        try {
+            val userExists = userRepository.userExists(userId)
+            
+            if (userExists) {
+                // Existing user: pull data from Firestore and update local cache
+                val profile = userRepository.getUserProfile(userId)
+                profile?.let {
+                    appPreferences.updateFromUserProfile(it)
+                }
+            } else {
+                // New user: push local onboarding data to Firestore
+                val localProfile = appPreferences.toUserProfile()
+                println("Firestore: Saving new user profile for userId: $userId")
+                userRepository.saveUserProfile(userId, localProfile)
+                println("Firestore: Successfully saved user profile")
+            }
+        } catch (e: Exception) {
+            println("Firestore sync error: ${e.message}")
+            e.printStackTrace()
+        }
     }
     
     private fun getErrorMessage(exception: Throwable): String {
