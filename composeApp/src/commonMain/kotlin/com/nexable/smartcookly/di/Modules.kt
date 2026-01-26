@@ -9,6 +9,8 @@ import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeViewModel
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanViewModel
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingViewModel
+import com.nexable.smartcookly.feature.profile.presentation.ProfileViewModel
+import com.nexable.smartcookly.feature.profile.presentation.edit.EditPreferenceViewModel
 import com.nexable.smartcookly.feature.user.data.repository.UserRepository
 import com.nexable.smartcookly.platform.getOpenAIApiKey
 import com.russhwolf.settings.Settings
@@ -37,4 +39,6 @@ val sharedModule = module {
     viewModel { OnboardingViewModel(get()) }
     viewModel { SignUpViewModel(get(), get(), get()) }
     viewModel { LoginViewModel(get(), get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get()) }
+    viewModel { EditPreferenceViewModel(get(), get()) }
 }

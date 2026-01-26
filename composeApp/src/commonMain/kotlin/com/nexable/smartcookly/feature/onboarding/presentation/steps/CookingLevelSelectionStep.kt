@@ -23,7 +23,7 @@ fun CookingLevelSelectionStep(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Spacer(modifier = Modifier.height(12.dp))
         

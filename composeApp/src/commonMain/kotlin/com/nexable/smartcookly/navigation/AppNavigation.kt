@@ -6,6 +6,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -16,11 +20,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeScreen
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanScreen
 import com.nexable.smartcookly.feature.home.presentation.HomeScreen
+import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
+import com.nexable.smartcookly.feature.profile.presentation.edit.*
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_fridge
 import smartcookly.composeapp.generated.resources.ic_home
@@ -28,8 +37,14 @@ import smartcookly.composeapp.generated.resources.ic_ingredient
 import smartcookly.composeapp.generated.resources.ic_shopping_cart
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    onLogout: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
+) {
     val navController = rememberNavController()
+    val authRepository: AuthRepository = koinInject()
+    val scope = rememberCoroutineScope()
+    var profileRefreshKey by remember { mutableStateOf(0) }
     
     Scaffold(
         bottomBar = {
@@ -87,7 +102,7 @@ fun AppNavigation() {
                         navController.navigate(Screen.Fridge.route)
                     },
                     onProfileClick = {
-                        navController.navigate(Screen.Profile.route)
+                        onNavigateToProfile()
                     }
                 )
             }
@@ -114,9 +129,76 @@ fun AppNavigation() {
             }
 
 
-            composable(Screen.Profile.route) {
-                // Placeholder for Profile screen
-                Text("Profile Screen - Coming Soon")
+            composable(Screen.EditCuisines.route) {
+                EditCuisinesScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onSaveComplete = {
+                        profileRefreshKey++
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.EditDietary.route) {
+                EditDietaryScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onSaveComplete = {
+                        profileRefreshKey++
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.EditAllergies.route) {
+                EditAllergiesScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onSaveComplete = {
+                        profileRefreshKey++
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.EditDisliked.route) {
+                EditDislikedScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onSaveComplete = {
+                        profileRefreshKey++
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.EditHealth.route) {
+                EditHealthScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onSaveComplete = {
+                        profileRefreshKey++
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.EditCookingLevel.route) {
+                EditCookingLevelScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onSaveComplete = {
+                        profileRefreshKey++
+                        navController.popBackStack()
+                    }
+                )
             }
 
             composable(Screen.ReviewScan.route) {

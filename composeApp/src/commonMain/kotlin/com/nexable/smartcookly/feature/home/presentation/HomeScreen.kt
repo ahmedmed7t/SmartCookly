@@ -26,6 +26,7 @@ import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_chef
 import smartcookly.composeapp.generated.resources.ic_cooking
 import smartcookly.composeapp.generated.resources.ic_fridge
+import smartcookly.composeapp.generated.resources.ic_heart
 import smartcookly.composeapp.generated.resources.ic_user
 
 @Composable
@@ -92,22 +93,43 @@ private fun HomeHeader(
             )
         }
 
-        // Profile Icon
-        IconButton(
-            onClick = onProfileClick,
-            modifier = Modifier
-                .size(50.dp)
-                .clip(CircleShape)
-                .background(
-                    Color(0xFF16664A).copy(alpha = 0.1f) // Light brown background
+        Row {
+            // Fav Icon
+            IconButton(
+                onClick = onProfileClick,
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Color(0xFF16664A).copy(alpha = 0.1f) // Light brown background
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_heart),
+                    contentDescription = "Favourite",
+                    tint = Color(0xFF16664A), // Brown color
+                    modifier = Modifier.size(28.dp)
                 )
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_chef),
-                contentDescription = "Profile",
-                tint = Color(0xFF16664A), // Brown color
-                modifier = Modifier.size(44.dp)
-            )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+            // Profile Icon
+            IconButton(
+                onClick = onProfileClick,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Color(0xFF16664A).copy(alpha = 0.1f) // Light brown background
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_chef),
+                    contentDescription = "Profile",
+                    tint = Color(0xFF16664A), // Brown color
+                    modifier = Modifier.size(44.dp)
+                )
+            }
         }
     }
 }

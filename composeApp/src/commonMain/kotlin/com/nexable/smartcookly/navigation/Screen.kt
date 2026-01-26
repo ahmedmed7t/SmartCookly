@@ -12,4 +12,10 @@ sealed class Screen(val route: String) {
     data object Shopping : Screen("shopping")
     data object ReviewScan : Screen("review_scan")
     data object Profile : Screen("profile")
+    data object EditCuisines : Screen("edit_cuisines")
+    data object EditDietary : Screen("edit_dietary")
+    data object EditAllergies : Screen("edit_allergies")
+    data object EditDisliked : Screen("edit_disliked")
+    data object EditHealth : Screen("edit_health")
+    data object EditCookingLevel : Screen("edit_cooking_level")
 }
