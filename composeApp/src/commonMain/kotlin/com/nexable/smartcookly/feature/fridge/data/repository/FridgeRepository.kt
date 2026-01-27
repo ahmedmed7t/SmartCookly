@@ -49,6 +49,10 @@ class FridgeRepository {
         items.forEach { addItem(it) }
     }
 
+    fun setItems(items: List<FridgeItem>) {
+        _items.value = items.map { it.copy(freshStatus = it.calculateFreshStatus()) }
+    }
+
     fun updateItem(item: FridgeItem) {
         val currentItems = _items.value.toMutableList()
         val index = currentItems.indexOfFirst { it.id == item.id }

@@ -18,6 +18,7 @@ import com.nexable.smartcookly.feature.onboarding.presentation.LoginEncouragemen
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingScreen
 import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
+import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientScreen
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -28,6 +29,7 @@ fun RootNavigation() {
     val authRepository: AuthRepository = koinInject()
     val scope = rememberCoroutineScope()
     var profileRefreshKey by remember { mutableStateOf(0) }
+    var fridgeRefreshKey by remember { mutableStateOf(0) }
     
     var startDestination by remember { mutableStateOf<String?>(null) }
     
@@ -139,7 +141,11 @@ fun RootNavigation() {
                     },
                     onNavigateToProfile = {
                         navController.navigate(Screen.Profile.route)
-                    }
+                    },
+                    onNavigateToAddIngredient = {
+                        navController.navigate(Screen.AddIngredient.route)
+                    },
+                    fridgeRefreshKey = fridgeRefreshKey
                 )
             }
             
@@ -247,6 +253,15 @@ fun RootNavigation() {
                     },
                     onSaveComplete = {
                         profileRefreshKey++
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.AddIngredient.route) {
+                AddIngredientScreen(
+                    onNavigateBack = {
+                        fridgeRefreshKey++
                         navController.popBackStack()
                     }
                 )

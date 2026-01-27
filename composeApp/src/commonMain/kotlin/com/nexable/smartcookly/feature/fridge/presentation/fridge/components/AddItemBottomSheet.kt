@@ -7,8 +7,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
+import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_next
 
 @Composable
 fun AddItemBottomSheet(
@@ -93,10 +97,11 @@ private fun AddOptionButton(
                 )
             }
             
-            Text(
-                text = ">",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            Icon(
+                painter = painterResource(Res.drawable.ic_next),
+                contentDescription = "next icon",
+                tint = Color(0xFF16664A),
+                modifier = Modifier.size(24.dp)
             )
         }
     }

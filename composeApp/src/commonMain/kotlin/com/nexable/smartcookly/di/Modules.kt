@@ -6,6 +6,8 @@ import com.nexable.smartcookly.feature.auth.presentation.login.LoginViewModel
 import com.nexable.smartcookly.feature.auth.presentation.signup.SignUpViewModel
 import com.nexable.smartcookly.feature.fridge.data.remote.OpenAIApiClient
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
+import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
+import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientViewModel
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeViewModel
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanViewModel
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingViewModel
@@ -27,6 +29,7 @@ val sharedModule = module {
     
     // Repositories
     single { FridgeRepository() }
+    single { IngredientRepository() }
     single { AuthRepository() }
     single { UserRepository() }
     
@@ -34,8 +37,9 @@ val sharedModule = module {
     single { OpenAIApiClient(get(), getOpenAIApiKey()) }
     
     // ViewModels
-    viewModel { FridgeViewModel(get()) }
+    viewModel { FridgeViewModel(get(), get(), get()) }
     viewModel { ReviewScanViewModel(get(), get()) }
+    viewModel { AddIngredientViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
     viewModel { SignUpViewModel(get(), get(), get()) }
     viewModel { LoginViewModel(get(), get(), get()) }

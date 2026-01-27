@@ -18,4 +18,5 @@ sealed class Screen(val route: String) {
     data object EditDisliked : Screen("edit_disliked")
     data object EditHealth : Screen("edit_health")
     data object EditCookingLevel : Screen("edit_cooking_level")
+    data object AddIngredient : Screen("add_ingredient")
 }

@@ -34,7 +34,7 @@ fun CategoryTabs(
             Spacer(modifier = Modifier.width(8.dp))
             FoodCategory.entries.forEach { category ->
                 CategoryTab(
-                    label = category.name.replaceFirstChar { it.uppercase() },
+                    label = category.displayName,
                     isSelected = selectedCategory == category,
                     onClick = { onCategorySelected(category) }
                 )

@@ -2,14 +2,18 @@ package com.nexable.smartcookly.feature.fridge.presentation.fridge
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.fridge.data.model.FoodCategory
 import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
+import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class FridgeViewModel(
-    private val repository: FridgeRepository
+    private val repository: FridgeRepository,
+    private val ingredientRepository: IngredientRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _selectedCategory = MutableStateFlow<FoodCategory?>(null)
@@ -18,11 +22,18 @@ class FridgeViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+
+    init {
+        loadIngredients()
+    }
+
     val uiState: StateFlow<FridgeUiState> = combine(
         repository.items,
         _selectedCategory,
-        _searchQuery
-    ) { items, category, query ->
+        _searchQuery,
+        _isLoading
+    ) { items, category, query, isLoading ->
         val filteredItems = items
             .filter { item ->
                 (category == null || item.category == category) &&
@@ -36,6 +47,7 @@ class FridgeViewModel(
             groupedItems = groupedItems,
             selectedCategory = category,
             searchQuery = query,
+            isLoading = isLoading,
             totalItemCount = items.size
         )
     }.stateIn(
@@ -67,6 +79,23 @@ class FridgeViewModel(
     fun deleteItem(itemId: String) {
         viewModelScope.launch {
             repository.deleteItem(itemId)
+        }
+    }
+
+    fun loadIngredients() {
+        viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.uid ?: return@launch
+            _isLoading.value = true
+            try {
+                val items = ingredientRepository.getIngredients(userId)
+                // Replace all items with fetched items from Firebase
+                repository.setItems(items)
+            } catch (e: Exception) {
+                // Handle error silently or show error state if needed
+                println("FridgeViewModel: Error loading ingredients - ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

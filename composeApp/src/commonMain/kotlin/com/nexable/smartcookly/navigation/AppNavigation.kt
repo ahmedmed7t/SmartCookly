@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,7 +38,9 @@ import smartcookly.composeapp.generated.resources.ic_shopping_cart
 @Composable
 fun AppNavigation(
     onLogout: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToAddIngredient: () -> Unit = {},
+    fridgeRefreshKey: Int = 0
 ) {
     val navController = rememberNavController()
     val authRepository: AuthRepository = koinInject()
@@ -115,15 +118,21 @@ fun AppNavigation(
                 )
             }
             composable(Screen.Fridge.route) {
-                FridgeScreen(
-                    onNavigateToCamera = {
-                        // TODO open system camera app to pick only one image
-                    },
-                    onNavigateToReviewScan = { imageBase64 ->
-                        ImageCache.storeImage(imageBase64)
-                        navController.navigate(Screen.ReviewScan.route)
-                    }
-                )
+                key(fridgeRefreshKey) {
+                    FridgeScreen(
+                        onNavigateToCamera = {
+                            // TODO open system camera app to pick only one image
+                        },
+                        onNavigateToReviewScan = { imageBase64 ->
+                            ImageCache.storeImage(imageBase64)
+                            navController.navigate(Screen.ReviewScan.route)
+                        },
+                        onNavigateToAddIngredient = {
+                            onNavigateToAddIngredient()
+                        },
+                        refreshKey = fridgeRefreshKey
+                    )
+                }
             }
             
             composable(Screen.Recipes.route) {
