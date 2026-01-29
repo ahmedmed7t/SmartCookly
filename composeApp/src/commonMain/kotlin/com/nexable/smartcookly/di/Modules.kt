@@ -7,6 +7,7 @@ import com.nexable.smartcookly.feature.auth.presentation.signup.SignUpViewModel
 import com.nexable.smartcookly.feature.fridge.data.remote.OpenAIApiClient
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
 import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
+import com.nexable.smartcookly.feature.fridge.data.repository.ImageStorageRepository
 import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientViewModel
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeViewModel
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanViewModel
@@ -14,6 +15,8 @@ import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingViewMod
 import com.nexable.smartcookly.feature.profile.presentation.ProfileViewModel
 import com.nexable.smartcookly.feature.profile.presentation.edit.EditPreferenceViewModel
 import com.nexable.smartcookly.feature.user.data.repository.UserRepository
+import com.nexable.smartcookly.platform.ImageUploader
+import com.nexable.smartcookly.platform.ImageUploaderImpl
 import com.nexable.smartcookly.platform.getOpenAIApiKey
 import com.russhwolf.settings.Settings
 import org.koin.core.module.Module
@@ -27,9 +30,13 @@ val sharedModule = module {
     single { Settings() }
     single { AppPreferences(get()) }
     
+    // Platform Services
+    single<ImageUploader> { ImageUploaderImpl() }
+    
     // Repositories
     single { FridgeRepository() }
     single { IngredientRepository() }
+    single { ImageStorageRepository(get()) }
     single { AuthRepository() }
     single { UserRepository() }
     
@@ -38,7 +45,7 @@ val sharedModule = module {
     
     // ViewModels
     viewModel { FridgeViewModel(get(), get(), get()) }
-    viewModel { ReviewScanViewModel(get(), get()) }
+    viewModel { ReviewScanViewModel(get(), get(), get(), get(), get()) }
     viewModel { AddIngredientViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
     viewModel { SignUpViewModel(get(), get(), get()) }

@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 data class ImageAnalysisRequest(
     val model: String = "gpt-4o",
     val messages: List<Message>,
-    val max_tokens: Int = 1000
+    @SerialName("max_completion_tokens")
+    val max_completion_tokens: Int = 1000
 )
 
 @Serializable

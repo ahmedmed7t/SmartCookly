@@ -13,23 +13,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.fridge.presentation.review.components.DetectedItemCard
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_back
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewScanScreen(
-    imageBase64: String,
+    imageBytes: ByteArray,
     onNavigateBack: () -> Unit,
     onSaveComplete: () -> Unit,
     viewModel: ReviewScanViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
-    LaunchedEffect(imageBase64) {
-        if (imageBase64.isNotEmpty()) {
-            viewModel.analyzeImage(imageBase64)
-        }
+    LaunchedEffect(imageBytes) {
+        viewModel.analyzeImage(imageBytes)
     }
     
     Scaffold(
@@ -43,7 +45,7 @@ fun ReviewScanScreen(
                         Text(
                             text = "Review Scan",
                             style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold
+                                fontSize = 19.sp
                             )
                         )
                         
@@ -66,8 +68,12 @@ fun ReviewScanScreen(
                     }
                 },
                 navigationIcon = {
-                    TextButton(onClick = onNavigateBack) {
-                        Text("Back")
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_back),
+                            contentDescription = "Back",
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -127,8 +133,8 @@ fun ReviewScanScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .height(120.dp)
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
                 if (uiState.isLoading) {

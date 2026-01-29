@@ -1,17 +1,17 @@
 package com.nexable.smartcookly.navigation
 
 object ImageCache {
-    private var cachedImage: String? = null
+    private var cachedImageBytes: ByteArray? = null
     
-    fun storeImage(imageBase64: String) {
-        cachedImage = imageBase64
+    fun storeImageBytes(bytes: ByteArray) {
+        cachedImageBytes = bytes
     }
     
-    fun getImage(): String? {
-        return cachedImage
+    fun getImageBytes(): ByteArray? {
+        return cachedImageBytes
     }
     
     fun clearImage() {
-        cachedImage = null
+        cachedImageBytes = null
     }
 }

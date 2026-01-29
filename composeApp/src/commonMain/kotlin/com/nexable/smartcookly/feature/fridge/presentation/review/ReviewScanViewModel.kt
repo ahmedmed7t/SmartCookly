@@ -2,9 +2,12 @@ package com.nexable.smartcookly.feature.fridge.presentation.review
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import com.nexable.smartcookly.feature.fridge.data.remote.OpenAIApiClient
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
+import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
+import com.nexable.smartcookly.feature.fridge.data.repository.ImageStorageRepository
 import com.nexable.smartcookly.netwrokUtils.onError
 import com.nexable.smartcookly.netwrokUtils.onSuccess
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +17,10 @@ import kotlinx.coroutines.launch
 
 class ReviewScanViewModel(
     private val openAIApiClient: OpenAIApiClient,
-    private val repository: FridgeRepository
+    private val repository: FridgeRepository,
+    private val ingredientRepository: IngredientRepository,
+    private val authRepository: AuthRepository,
+    private val imageStorageRepository: ImageStorageRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReviewScanUiState())
@@ -23,31 +29,51 @@ class ReviewScanViewModel(
     private val _reviewedItems = mutableListOf<FridgeItem>()
     private val _autoSavedItems = mutableListOf<FridgeItem>()
 
-    fun analyzeImage(imageBase64: String) {
+    fun analyzeImage(imageBytes: ByteArray) {
         viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.uid
+            if (userId == null) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "User not authenticated"
+                )
+                return@launch
+            }
+            
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
-            openAIApiClient.analyzeImage(imageBase64)
-                .onSuccess { items ->
-                    // Split items into reviewed (empty) and auto-saved (all items initially)
-                    _reviewedItems.clear()
-                    _autoSavedItems.clear()
-                    _autoSavedItems.addAll(items)
-                    
-                    _uiState.value = _uiState.value.copy(
-                        detectedItems = items,
-                        reviewedItems = _reviewedItems.toList(),
-                        autoSavedItems = _autoSavedItems.toList(),
-                        isLoading = false,
-                        accuracy = calculateAccuracy(items.size)
-                    )
-                }
-                .onError { error ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = error.toString()
-                    )
-                }
+            try {
+                // Upload image to Firebase Storage
+                val downloadUrl = imageStorageRepository.uploadScanImage(userId, imageBytes)
+                
+                // Analyze with OpenAI using URL
+                openAIApiClient.analyzeImageFromUrl(downloadUrl)
+                    .onSuccess { items ->
+                        // Split items into reviewed (empty) and auto-saved (all items initially)
+                        _reviewedItems.clear()
+                        _autoSavedItems.clear()
+                        _autoSavedItems.addAll(items)
+                        
+                        _uiState.value = _uiState.value.copy(
+                            detectedItems = items,
+                            reviewedItems = _reviewedItems.toList(),
+                            autoSavedItems = _autoSavedItems.toList(),
+                            isLoading = false,
+                            accuracy = calculateAccuracy(items.size)
+                        )
+                    }
+                    .onError { error ->
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = error.toString()
+                        )
+                    }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Error uploading image: ${e.message}"
+                )
+            }
         }
     }
 
@@ -66,7 +92,26 @@ class ReviewScanViewModel(
 
     fun saveToFridge() {
         viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.uid
+            if (userId == null) {
+                _uiState.value = _uiState.value.copy(
+                    error = "User not authenticated"
+                )
+                return@launch
+            }
+            
             val allItems = _reviewedItems + _autoSavedItems
+            
+            // Save to Firebase
+            allItems.forEach { item ->
+                try {
+                    ingredientRepository.addIngredient(userId, item)
+                } catch (e: Exception) {
+                    println("ReviewScanViewModel: Error saving item ${item.name}: ${e.message}")
+                }
+            }
+            
+            // Also update local repository
             repository.addItems(allItems)
         }
     }

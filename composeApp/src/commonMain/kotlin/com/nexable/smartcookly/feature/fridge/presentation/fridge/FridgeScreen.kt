@@ -19,7 +19,6 @@ import org.koin.compose.koinInject
 @Composable
 fun FridgeScreen(
     onNavigateToCamera: () -> Unit,
-    onNavigateToReviewScan: (String) -> Unit,
     onNavigateToAddIngredient: () -> Unit = {},
     refreshKey: Int = 0,
     viewModel: FridgeViewModel = koinInject()

@@ -50,13 +50,51 @@ class OpenAIApiClient(
             if you could not recognize any food just return an empty list and don't reply with anything else other 
             than food
         """.trimIndent()
+
+        private val SYSTEM_PROMPT = """
+            
+            You are an expert food recognition and inventory assistant AI.
+
+            Your task is to analyze food images and detect all visible food items and ingredients as accurately as possible.
+
+            For each detected item, you must:
+            - Identify the ingredient name clearly and in a standardized form (e.g., "chicken breast", "tomato", "cheddar cheese").
+            - Assign a suitable food category (e.g., Vegetables, Fruits, Dairy, Proteins, Grains, Condiments, Beverages, Frozen Foods, Snacks, Other).
+            - Estimate an expected expiration date based on:
+              - The visual condition of the item (freshness, ripeness, visible spoilage, packaging state).
+              - Whether the item appears fresh, opened, sealed, frozen, or packaged.
+              - Typical shelf life standards for that type of food.
+
+            Rules and constraints:
+            - If an expiration date is printed on visible packaging, always use it.
+            - If no printed date is visible, provide a reasonable estimated expiration date in ISO format (YYYY-MM-DD) and include an "expiration_confidence" score from 0 to 100.
+            - If you are unsure about an item, still include it but mark it with a low confidence score.
+            - Never hallucinate branded expiration dates or exact storage history.
+            - Be conservative: prefer shorter shelf life estimates if freshness is unclear.
+            - Do not include non-food objects.
+
+            Output requirements:
+            - Return valid JSON only.
+            - The output must be a JSON array.
+            - Each object must include exactly these fields:
+               - name: the food item name
+                - category: one of VEGETABLES, DAIRY, PROTEINS, FRUITS, GRAINS, OTHER
+                - estimated_days_until_expiration: estimated days until expiration (or null if unknown)
+            
+            Return ONLY a valid JSON array, no other text. Example format:
+            [
+              {"name": "Spinach", "category": "VEGETABLES", "estimated_days_until_expiration": 5},
+              {"name": "Whole Milk", "category": "DAIRY", "estimated_days_until_expiration": 3}
+            ]
+            if you could not recognize any food just return an empty list and don't reply with anything else other 
+            than food
+
+        """.trimIndent()
     }
 
-    suspend fun analyzeImage(imageBase64: String): Result<List<FridgeItem>, NetworkError> {
-        val imageUrl = "data:image/jpeg;base64,$imageBase64"
-        
+    suspend fun analyzeImageFromUrl(imageUrl: String): Result<List<FridgeItem>, NetworkError> {
         val request = ImageAnalysisRequest(
-            model = "gpt-5-mini",
+            model = "gpt-4o-mini",
             messages = listOf(
                 Message(
                     role = "user",
@@ -72,9 +110,18 @@ class OpenAIApiClient(
                             )
                         )
                     )
+                ),
+                Message(
+                    role = "system",
+                    content = listOf(
+                        Content(
+                            type = "text",
+                            text = SYSTEM_PROMPT
+                        ),
+                    )
                 )
             ),
-            max_tokens = 2000
+            max_completion_tokens = 2000
         )
 
         return post<ImageAnalysisResponse>(CHAT_COMPLETIONS_ENDPOINT) {
@@ -84,6 +131,11 @@ class OpenAIApiClient(
         }.map { response ->
             parseDetectedItems(response)
         }
+    }
+    
+    suspend fun analyzeImage(imageBase64: String): Result<List<FridgeItem>, NetworkError> {
+        val imageUrl = "data:image/jpeg;base64,$imageBase64"
+        return analyzeImageFromUrl(imageUrl)
     }
 
     private fun parseDetectedItems(response: ImageAnalysisResponse): List<FridgeItem> {

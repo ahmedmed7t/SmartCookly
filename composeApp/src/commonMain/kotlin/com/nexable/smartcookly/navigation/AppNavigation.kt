@@ -26,6 +26,8 @@ import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeScreen
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanScreen
 import com.nexable.smartcookly.feature.home.presentation.HomeScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
+import com.nexable.smartcookly.platform.CameraLauncher
+import com.nexable.smartcookly.platform.getActivityContext
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
@@ -119,13 +121,25 @@ fun AppNavigation(
             }
             composable(Screen.Fridge.route) {
                 key(fridgeRefreshKey) {
+                    val activityContext = getActivityContext()
+                    val cameraLauncher = remember(activityContext) {
+                        CameraLauncher(activityContext)
+                    }
+                    
+                    val cameraHandle = cameraLauncher.rememberCameraLauncher(
+                        onImageCaptured = { imageBytes ->
+                            ImageCache.storeImageBytes(imageBytes)
+                            navController.navigate(Screen.ReviewScan.route)
+                        },
+                        onError = { error ->
+                            // TODO: Show error message to user
+                            println("Camera error: $error")
+                        }
+                    )
+                    
                     FridgeScreen(
                         onNavigateToCamera = {
-                            // TODO open system camera app to pick only one image
-                        },
-                        onNavigateToReviewScan = { imageBase64 ->
-                            ImageCache.storeImage(imageBase64)
-                            navController.navigate(Screen.ReviewScan.route)
+                            cameraHandle?.launch()
                         },
                         onNavigateToAddIngredient = {
                             onNavigateToAddIngredient()
@@ -219,18 +233,20 @@ fun AppNavigation(
             }
 
             composable(Screen.ReviewScan.route) {
-                val imageBase64 = ImageCache.getImage() ?: ""
-                ReviewScanScreen(
-                    imageBase64 = imageBase64,
-                    onNavigateBack = {
-                        ImageCache.clearImage()
-                        navController.popBackStack()
-                    },
-                    onSaveComplete = {
-                        ImageCache.clearImage()
-                        navController.popBackStack(Screen.Fridge.route, inclusive = false)
-                    }
-                )
+                val imageBytes = ImageCache.getImageBytes()
+                if (imageBytes != null) {
+                    ReviewScanScreen(
+                        imageBytes = imageBytes,
+                        onNavigateBack = {
+                            ImageCache.clearImage()
+                            navController.popBackStack()
+                        },
+                        onSaveComplete = {
+                            ImageCache.clearImage()
+                            navController.popBackStack(Screen.Fridge.route, inclusive = false)
+                        }
+                    )
+                }
             }
         }
     }

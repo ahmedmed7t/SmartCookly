@@ -13,5 +13,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to scan food ingredients</string>
 </dict>
 </plist>
