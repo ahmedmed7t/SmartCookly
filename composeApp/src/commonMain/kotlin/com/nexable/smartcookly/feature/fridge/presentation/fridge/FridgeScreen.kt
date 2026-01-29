@@ -20,11 +20,14 @@ import org.koin.compose.koinInject
 fun FridgeScreen(
     onNavigateToCamera: () -> Unit,
     onNavigateToAddIngredient: () -> Unit = {},
+    cameraError: String? = null,
+    onCameraErrorDismissed: () -> Unit = {},
     refreshKey: Int = 0,
     viewModel: FridgeViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddBottomSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     
     // Load ingredients on first composition
     LaunchedEffect(Unit) {
@@ -36,7 +39,21 @@ fun FridgeScreen(
         viewModel.loadIngredients()
     }
     
+    // Show error snackbar when camera error occurs
+    LaunchedEffect(cameraError) {
+        cameraError?.let { error ->
+            snackbarHostState.showSnackbar(
+                message = "Failed to capture image: $error",
+                duration = SnackbarDuration.Long
+            )
+            onCameraErrorDismissed()
+        }
+    }
+    
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -116,13 +133,19 @@ fun FridgeScreen(
                                 }
                                 
                                 items(items) { item ->
-                                    FridgeItemCard(item = item)
+                                    FridgeItemCard(
+                                        item = item,
+                                        onDelete = { viewModel.deleteItem(item.id) }
+                                    )
                                 }
                             }
                         } else {
                             // Show items for selected category
                             items(uiState.items) { item ->
-                                FridgeItemCard(item = item)
+                                FridgeItemCard(
+                                    item = item,
+                                    onDelete = { viewModel.deleteItem(item.id) }
+                                )
                             }
                         }
                         

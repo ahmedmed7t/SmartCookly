@@ -15,6 +15,9 @@ import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.painterResource
+import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_trash
 
 @Composable
 fun DetectedItemCard(
@@ -25,11 +28,12 @@ fun DetectedItemCard(
     val daysUntilExpiration = item.expirationDate?.let { date ->
         val today = Clock.System.now()
             .toLocalDateTime(TimeZone.currentSystemDefault()).date
-        (date.toEpochDays() - today.toEpochDays()).toInt()
+        (date.toEpochDays() - today.toEpochDays())
     }
-    
-    val isExpiringSoon = daysUntilExpiration != null && daysUntilExpiration <= 2 && daysUntilExpiration >= 0
-    
+
+    val isExpiringSoon =
+        daysUntilExpiration != null && daysUntilExpiration <= 2 && daysUntilExpiration >= 0
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -62,7 +66,7 @@ fun DetectedItemCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -74,7 +78,7 @@ fun DetectedItemCard(
                     ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                
+
                 item.expirationDate?.let { date ->
                     Text(
                         text = "Expires ${date.dayOfMonth}/${date.monthNumber}/${date.year}",
@@ -82,7 +86,7 @@ fun DetectedItemCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 if (isExpiringSoon) {
                     Text(
                         text = "⚠ EXPIRING IN ${daysUntilExpiration} DAYS",
@@ -92,23 +96,22 @@ fun DetectedItemCard(
                         color = Color(0xFFF57C00)
                     )
                 }
-                
-                item.category.let { category ->
-                    Text(
-                        text = "CATEGORY: ${category.name}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+
+                Text(
+                    text = "CATEGORY: ${item.category.name}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            
-            TextButton(
+
+            IconButton(
                 onClick = onRemove
             ) {
-                Text(
-                    text = "X",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Icon(
+                    painter = painterResource(Res.drawable.ic_trash),
+                    contentDescription = "Delete item",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }

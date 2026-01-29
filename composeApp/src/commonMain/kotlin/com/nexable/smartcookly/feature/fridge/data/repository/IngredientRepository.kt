@@ -117,4 +117,20 @@ class IngredientRepository {
             emptyList()
         }
     }
+    
+    suspend fun deleteIngredient(userId: String, ingredientId: String) {
+        try {
+            println("IngredientRepository: Deleting ingredient $ingredientId for userId: $userId")
+            firestore.collection(usersCollection)
+                .document(userId)
+                .collection(ingredientsSubcollection)
+                .document(ingredientId)
+                .delete()
+            println("IngredientRepository: Ingredient deleted successfully")
+        } catch (e: Exception) {
+            println("IngredientRepository: Error deleting ingredient - ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
+    }
 }

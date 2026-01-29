@@ -1,5 +1,6 @@
 package com.nexable.smartcookly.navigation
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,46 +50,50 @@ fun AppNavigation(
     val scope = rememberCoroutineScope()
     var profileRefreshKey by remember { mutableStateOf(0) }
     
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    val isReviewScanScreen = currentDestination?.route == Screen.ReviewScan.route
+    
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp
-            ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                
-                val bottomNavItems = listOf(
-                    BottomNavItem(Screen.Home, "HOME", Res.drawable.ic_home),
-                    BottomNavItem(Screen.Fridge, "FRIDGE", Res.drawable.ic_fridge),
-                    BottomNavItem(Screen.Recipes, "RECIPES", Res.drawable.ic_ingredient),
-                    BottomNavItem(Screen.Shopping, "SHOPPING", Res.drawable.ic_shopping_cart),
-                )
-                
-                bottomNavItems.forEach { item ->
-                    NavigationBarItem(
-                        label = { Text(item.label) },
-                        selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
-                        onClick = {
-                            navController.navigate(item.screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                modifier = Modifier.size(22.dp),
-                                painter = painterResource(item.icon),
-                                contentDescription = ""
-                            )
-                        }
+            // Hide bottom navigation bar for ReviewScanScreen
+            if (!isReviewScanScreen) {
+                NavigationBar(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                        .shadow(elevation = 8.dp, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
+                    val bottomNavItems = listOf(
+                        BottomNavItem(Screen.Home, "HOME", Res.drawable.ic_home),
+                        BottomNavItem(Screen.Fridge, "FRIDGE", Res.drawable.ic_fridge),
+                        BottomNavItem(Screen.Recipes, "RECIPES", Res.drawable.ic_ingredient),
+                        BottomNavItem(Screen.Shopping, "SHOPPING", Res.drawable.ic_shopping_cart),
                     )
+                    
+                    bottomNavItems.forEach { item ->
+                        NavigationBarItem(
+                            label = { Text(item.label) },
+                            selected = currentDestination?.hierarchy?.any { it.route == item.screen.route } == true,
+                            onClick = {
+                                navController.navigate(item.screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    modifier = Modifier.size(22.dp),
+                                    painter = painterResource(item.icon),
+                                    contentDescription = ""
+                                )
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -96,7 +101,9 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(
+                if (isReviewScanScreen) PaddingValues(0.dp) else paddingValues
+            )
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(
@@ -126,13 +133,15 @@ fun AppNavigation(
                         CameraLauncher(activityContext)
                     }
                     
+                    var cameraError by remember { mutableStateOf<String?>(null) }
+                    
                     val cameraHandle = cameraLauncher.rememberCameraLauncher(
                         onImageCaptured = { imageBytes ->
                             ImageCache.storeImageBytes(imageBytes)
                             navController.navigate(Screen.ReviewScan.route)
                         },
                         onError = { error ->
-                            // TODO: Show error message to user
+                            cameraError = error
                             println("Camera error: $error")
                         }
                     )
@@ -144,6 +153,8 @@ fun AppNavigation(
                         onNavigateToAddIngredient = {
                             onNavigateToAddIngredient()
                         },
+                        cameraError = cameraError,
+                        onCameraErrorDismissed = { cameraError = null },
                         refreshKey = fridgeRefreshKey
                     )
                 }

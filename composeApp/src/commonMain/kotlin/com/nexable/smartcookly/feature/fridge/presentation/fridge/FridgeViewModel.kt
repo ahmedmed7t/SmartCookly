@@ -78,7 +78,15 @@ class FridgeViewModel(
 
     fun deleteItem(itemId: String) {
         viewModelScope.launch {
-            repository.deleteItem(itemId)
+            val userId = authRepository.getCurrentUser()?.uid ?: return@launch
+            try {
+                ingredientRepository.deleteIngredient(userId, itemId)
+                // Reload ingredients after deletion
+                loadIngredients()
+            } catch (e: Exception) {
+                println("FridgeViewModel: Error deleting item - ${e.message}")
+                // Handle error - could show error state if needed
+            }
         }
     }
 

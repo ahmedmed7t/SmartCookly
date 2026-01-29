@@ -49,22 +49,22 @@ fun ReviewScanScreen(
                             )
                         )
                         
-                        uiState.accuracy?.let { accuracy ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF4CAF50))
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "$accuracy% ACCURACY",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    color = Color.White
-                                )
-                            }
-                        }
+//                        uiState.accuracy?.let { accuracy ->
+//                            Box(
+//                                modifier = Modifier
+//                                    .clip(RoundedCornerShape(12.dp))
+//                                    .background(Color(0xFF4CAF50))
+//                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+//                            ) {
+//                                Text(
+//                                    text = "$accuracy% ACCURACY",
+//                                    style = MaterialTheme.typography.labelSmall.copy(
+//                                        fontWeight = FontWeight.Bold
+//                                    ),
+//                                    color = Color.White
+//                                )
+//                            }
+//                        }
                     }
                 },
                 navigationIcon = {
@@ -82,13 +82,18 @@ fun ReviewScanScreen(
             )
         },
         bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.background,
+                tonalElevation = 8.dp
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                 if (uiState.reviewedItems.isNotEmpty() || uiState.autoSavedItems.isNotEmpty()) {
                     Box(
                         modifier = Modifier
@@ -120,6 +125,7 @@ fun ReviewScanScreen(
                 ) {
                     Text("Save to Fridge")
                 }
+                }
             }
         }
     ) { paddingValues ->
@@ -130,48 +136,43 @@ fun ReviewScanScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Image preview placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .background(MaterialTheme.colorScheme.background),
-                contentAlignment = Alignment.Center
-            ) {
-                if (uiState.isLoading) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CircularProgressIndicator()
-                        Text(
-                            text = "ANALYSIS LIVE",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "${uiState.detectedItems.size} Items Detected",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "${uiState.detectedItems.size} Items Detected",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(80.dp)
+//                    .background(MaterialTheme.colorScheme.background),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                if (uiState.isLoading) {
+//                    Column(
+//                        horizontalAlignment = Alignment.CenterHorizontally,
+//                        verticalArrangement = Arrangement.spacedBy(8.dp)
+//                    ) {
+//                        CircularProgressIndicator()
+//                        Text(
+//                            text = "ANALYSIS LIVE",
+//                            style = MaterialTheme.typography.labelMedium,
+//                            color = MaterialTheme.colorScheme.onSurfaceVariant
+//                        )
+//                    }
+//                } else {
+//                    Column(
+//                        horizontalAlignment = Alignment.CenterHorizontally,
+//                        verticalArrangement = Arrangement.spacedBy(8.dp)
+//                    ) {
+//                        Text(
+//                            text = "${uiState.detectedItems.size} Items Detected",
+//                            style = MaterialTheme.typography.titleMedium,
+//                            color = MaterialTheme.colorScheme.onSurface
+//                        )
+//                    }
+//                }
+//            }
             
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
