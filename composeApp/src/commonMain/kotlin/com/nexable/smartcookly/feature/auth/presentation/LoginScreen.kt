@@ -31,6 +31,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_email
 import smartcookly.composeapp.generated.resources.ic_google
+import smartcookly.composeapp.generated.resources.ic_launcher_playstore
 import smartcookly.composeapp.generated.resources.ic_lock
 import smartcookly.composeapp.generated.resources.ic_login_logo
 import smartcookly.composeapp.generated.resources.ic_next
@@ -81,15 +82,15 @@ fun LoginScreen(
                 // Logo with decorative background
                 Box(
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.ic_login_logo),
+                        painter = painterResource(Res.drawable.ic_launcher_playstore),
                         contentDescription = "Cookly Logo",
-                        modifier = Modifier.size(80.dp),
+                        modifier = Modifier.size(100.dp),
                         contentScale = ContentScale.Fit
                     )
                 }

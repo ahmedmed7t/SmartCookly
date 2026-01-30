@@ -29,6 +29,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_back
 import smartcookly.composeapp.generated.resources.ic_email
+import smartcookly.composeapp.generated.resources.ic_launcher_playstore
 import smartcookly.composeapp.generated.resources.ic_lock
 import smartcookly.composeapp.generated.resources.ic_login_logo
 import smartcookly.composeapp.generated.resources.ic_next
@@ -108,9 +109,9 @@ fun SignUpScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.ic_login_logo),
+                        painter = painterResource(Res.drawable.ic_launcher_playstore),
                         contentDescription = "Cookly Logo",
-                        modifier = Modifier.size(70.dp),
+                        modifier = Modifier.size(100.dp),
                         contentScale = ContentScale.Fit
                     )
                 }

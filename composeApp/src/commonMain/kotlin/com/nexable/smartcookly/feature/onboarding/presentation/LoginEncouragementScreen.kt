@@ -21,6 +21,7 @@ import com.nexable.smartcookly.platform.BackHandler
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_back
+import smartcookly.composeapp.generated.resources.ic_launcher_playstore
 import smartcookly.composeapp.generated.resources.ic_login_logo
 import smartcookly.composeapp.generated.resources.ic_next
 
@@ -75,20 +76,18 @@ fun LoginEncouragementScreen(
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
                 // Illustration container
                 Box(
                     modifier = Modifier
-                        .size(180.dp)
+                        .size(120.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.ic_login_logo),
+                        painter = painterResource(Res.drawable.ic_launcher_playstore),
                         contentDescription = null,
-                        modifier = Modifier.size(140.dp),
+                        modifier = Modifier.size(120.dp),
                         contentScale = ContentScale.Fit
                     )
                 }
