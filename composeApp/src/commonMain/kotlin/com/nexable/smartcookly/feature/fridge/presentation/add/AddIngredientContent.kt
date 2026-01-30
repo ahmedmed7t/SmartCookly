@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,13 +26,18 @@ import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.fridge.data.model.FoodCategory
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.number
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_fruits
+import smartcookly.composeapp.generated.resources.ic_next
+import smartcookly.composeapp.generated.resources.ic_prev
 
 // Primary color constant
 private val PrimaryGreen = Color(0xFF16664A)
@@ -247,8 +253,9 @@ fun AddIngredientContent(
                     value = uiState.expirationDate?.let { date ->
                         "${date.dayOfMonth}/${date.monthNumber}/${date.year}"
                     } ?: "",
-                    onValueChange = { /* Not editable */ },
+                    onValueChange = { /* Not editable - only opens date picker */ },
                     readOnly = true,
+                    enabled = !uiState.isLoading,
                     placeholder = { 
                         Text(
                             "Select expiration date",
@@ -256,7 +263,14 @@ fun AddIngredientContent(
                         )
                     },
                     leadingIcon = {
-                        IconButton(onClick = { showDatePicker = true }) {
+                        IconButton(
+                            onClick = { 
+                                if (!uiState.isLoading) {
+                                    showDatePicker = true
+                                }
+                            },
+                            enabled = !uiState.isLoading
+                        ) {
                             Text(
                                 "📅",
                                 fontSize = 22.sp
@@ -265,7 +279,10 @@ fun AddIngredientContent(
                     },
                     trailingIcon = {
                         if (uiState.expirationDate != null) {
-                            IconButton(onClick = { onExpirationDateChange(null) }) {
+                            IconButton(
+                                onClick = { onExpirationDateChange(null) },
+                                enabled = !uiState.isLoading
+                            ) {
                                 Text(
                                     "✕",
                                     fontSize = 18.sp,
@@ -276,17 +293,29 @@ fun AddIngredientContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            // Open date picker when field gains focus
+                            if (focusState.isFocused && !uiState.isLoading && !showDatePicker) {
+                                showDatePicker = true
+                            }
+                        }
                         .clickable(
+                            enabled = !uiState.isLoading,
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        ) { showDatePicker = true },
+                        ) { 
+                            if (!uiState.isLoading) {
+                                showDatePicker = true
+                            }
+                        },
                     shape = RoundedCornerShape(14.dp),
-                    enabled = !uiState.isLoading,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryGreen,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
                     ),
                     textStyle = MaterialTheme.typography.bodyLarge
                 )
@@ -351,13 +380,21 @@ fun AddIngredientContent(
     if (showDatePicker) {
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val tomorrow = today.plus(1, DateTimeUnit.DAY)
+        // Ensure initialDate is always at least tomorrow
+        val initialDate = uiState.expirationDate?.let { existingDate ->
+            if (existingDate.toEpochDays() >= tomorrow.toEpochDays()) {
+                existingDate
+            } else {
+                tomorrow
+            }
+        } ?: tomorrow
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             onDateSelected = { selectedDate ->
                 onExpirationDateChange(selectedDate)
                 showDatePicker = false
             },
-            initialDate = uiState.expirationDate ?: tomorrow,
+            initialDate = initialDate,
             minDate = tomorrow
         )
     }
@@ -434,171 +471,297 @@ private fun DatePickerDialog(
     initialDate: LocalDate,
     minDate: LocalDate
 ) {
-    var year by remember { mutableStateOf(initialDate.year.toString()) }
-    var month by remember { mutableStateOf(initialDate.monthNumber.toString()) }
-    var day by remember { mutableStateOf(initialDate.dayOfMonth.toString()) }
-    var dateError by remember { mutableStateOf<String?>(null) }
-
-    fun validateDate(): LocalDate? {
-        val y = year.toIntOrNull()
-        val m = month.toIntOrNull()
-        val d = day.toIntOrNull()
-
-        if (y == null || m == null || d == null) {
-            dateError = "Please enter valid numbers"
-            return null
-        }
-
-        if (m !in 1..12) {
-            dateError = "Month must be between 1 and 12"
-            return null
-        }
-
-        if (d !in 1..31) {
-            dateError = "Day must be between 1 and 31"
-            return null
-        }
-
-        return try {
-            val selectedDate = LocalDate(y, m, d)
-            val daysUntil = (selectedDate.toEpochDays() - minDate.toEpochDays())
-
-            if (daysUntil < 0) {
-                dateError = "Date must be from tomorrow onwards"
-                null
-            } else {
-                dateError = null
-                selectedDate
-            }
-        } catch (e: Exception) {
-            dateError = "Invalid date"
-            null
-        }
+    var currentMonth by remember { mutableStateOf(initialDate) }
+    var selectedDate by remember { mutableStateOf<LocalDate?>(initialDate) }
+    
+    // Update selectedDate when initialDate changes
+    LaunchedEffect(initialDate) {
+        selectedDate = initialDate
+        currentMonth = initialDate
     }
-
+    
+    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    
+    // Calculate calendar grid (6 weeks * 7 days = 42 cells)
+    val calendarDays = remember(currentMonth, selectedDate, minDate) {
+        val days = mutableListOf<Pair<Int, LocalDate?>>() // day number and date (null for prev/next month)
+        
+        // Get first day of current month
+        val firstDayOfMonth = LocalDate(currentMonth.year, currentMonth.monthNumber, 1)
+        val firstDayOfWeek = firstDayOfMonth.dayOfWeek
+        
+        // Calculate days in month - get last day of the month
+        val daysInMonth = try {
+            // Get first day of next month, then subtract 1 day to get last day of current month
+            val nextMonthFirstDay = firstDayOfMonth.plus(1, DateTimeUnit.MONTH)
+            val lastDayOfMonth = nextMonthFirstDay.plus(-1, DateTimeUnit.DAY)
+            lastDayOfMonth.dayOfMonth
+        } catch (e: Exception) {
+            // Fallback: use a safe default based on month
+            when (currentMonth.monthNumber) {
+                1, 3, 5, 7, 8, 10, 12 -> 31
+                4, 6, 9, 11 -> 30
+                2 -> if (currentMonth.year % 4 == 0 && (currentMonth.year % 100 != 0 || currentMonth.year % 400 == 0)) 29 else 28
+                else -> 31
+            }
+        }
+        
+        // Calculate start offset (which day of week the 1st falls on)
+        // isoDayNumber: Monday = 1, Tuesday = 2, ..., Sunday = 7
+        val startOffset = (firstDayOfWeek.isoDayNumber - 1) % 7
+        
+        // Add previous month's trailing days (as placeholders)
+        for (i in 0 until startOffset) {
+            days.add(Pair(0, null)) // 0 indicates placeholder
+        }
+        
+        // Add current month's days
+        for (day in 1..daysInMonth) {
+            val date = try {
+                LocalDate(currentMonth.year, currentMonth.monthNumber, day)
+            } catch (e: Exception) {
+                null
+            }
+            days.add(Pair(day, date))
+        }
+        
+        // Fill remaining cells to make 42 total (next month's leading days)
+        while (days.size < 42) {
+            days.add(Pair(0, null)) // 0 indicates placeholder
+        }
+        
+        days
+    }
+    
+    // Month name
+    val monthNames = listOf(
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    )
+    val monthName = monthNames.getOrNull(currentMonth.monthNumber - 1) ?: ""
+    val yearText = currentMonth.year.toString()
+    
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
+        title = {
+            // Header with month/year and navigation
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Text(
-                    "📅",
-                    fontSize = 24.sp
-                )
-                Text(
-                    "Select Expiration Date",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleLarge
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            currentMonth = try {
+                                currentMonth.plus(-1, DateTimeUnit.MONTH)
+                            } catch (e: Exception) {
+                                currentMonth
+                            }
+                        },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_prev),
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = ""
+                        )
+                    }
+                    
+                    Text(
+                        text = "$monthName $yearText",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    IconButton(
+                        onClick = {
+                            currentMonth = try {
+                                currentMonth.plus(1, DateTimeUnit.MONTH)
+                            } catch (e: Exception) {
+                                currentMonth
+                            }
+                        },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_next),
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = ""
+                        )
+                    }
+                }
             }
         },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if (dateError != null) {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.errorContainer
-                    ) {
-                        Text(
-                            text = dateError!!,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(12.dp)
-                        )
+                // Day of week labels
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    listOf("M", "T", "W", "T", "F", "S", "S").forEach { dayLabel ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = dayLabel,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
-                OutlinedTextField(
-                    value = year,
-                    onValueChange = {
-                        if (it.all { char -> char.isDigit() }) {
-                            year = it
-                            dateError = null
+                
+                // Calendar grid
+                calendarDays.chunked(7).forEach { week ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        week.forEach { (dayNumber, date) ->
+                            val isPlaceholder = dayNumber == 0
+                            
+                            // Reconstruct date if it's null but we have a day number (current month)
+                            val actualDate = date ?: if (!isPlaceholder) {
+                                try {
+                                    LocalDate(currentMonth.year, currentMonth.monthNumber, dayNumber)
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            } else {
+                                null
+                            }
+                            
+                            val isSelectable = actualDate?.let { 
+                                it.toEpochDays() >= minDate.toEpochDays() 
+                            } ?: false
+                            val isSelected = actualDate?.let {
+                                selectedDate?.let { sel ->
+                                    sel.year == it.year && sel.monthNumber == it.monthNumber && sel.dayOfMonth == it.dayOfMonth
+                                } ?: false
+                            } ?: false
+                            val isToday = actualDate?.let {
+                                it.year == today.year && it.monthNumber == today.monthNumber && it.dayOfMonth == today.dayOfMonth
+                            } ?: false
+                            
+                            if (isPlaceholder) {
+                                // Empty cell for prev/next month days
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .padding(4.dp)
+                                )
+                            } else {
+                                // Always show the day number for current month days
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .padding(4.dp)
+                                        .then(
+                                            if (isSelectable) {
+                                                Modifier.clickable {
+                                                    actualDate?.let { selectedDate = it }
+                                                }
+                                            } else {
+                                                Modifier
+                                            }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primary),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = dayNumber.toString(),
+                                                color = MaterialTheme.colorScheme.onPrimary,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = dayNumber.toString(),
+                                            color = when {
+                                                !isSelectable -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                                isToday -> MaterialTheme.colorScheme.primary
+                                                else -> MaterialTheme.colorScheme.onSurface
+                                            },
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    }
+                                }
+                            }
                         }
-                    },
-                    label = { Text("Year") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    isError = dateError != null,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryGreen
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = month,
-                        onValueChange = {
-                            if (it.all { char -> char.isDigit() } && it.length <= 2) {
-                                month = it
-                                dateError = null
-                            }
-                        },
-                        label = { Text("Month") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        isError = dateError != null,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PrimaryGreen
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    OutlinedTextField(
-                        value = day,
-                        onValueChange = {
-                            if (it.all { char -> char.isDigit() } && it.length <= 2) {
-                                day = it
-                                dateError = null
-                            }
-                        },
-                        label = { Text("Day") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        isError = dateError != null,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PrimaryGreen
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
+                    }
                 }
             }
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    val selectedDate = validateDate()
-                    if (selectedDate != null) {
-                        onDateSelected(selectedDate)
-                    }
-                },
-                enabled = dateError == null,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryGreen,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(12.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Confirm", fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismissRequest,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Cancel")
+                // CANCEL button
+                TextButton(
+                    onClick = onDismissRequest,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    Text(
+                        "CANCEL",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                
+                // OK button
+                TextButton(
+                    onClick = {
+                        selectedDate?.let {
+                            onDateSelected(it)
+                        }
+                    },
+                    enabled = selectedDate != null,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                ) {
+                    Text(
+                        "OK",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         tonalElevation = 8.dp
     )
 }
+
