@@ -1,22 +1,28 @@
 package com.nexable.smartcookly.feature.onboarding.presentation
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.platform.BackHandler
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_back
 import smartcookly.composeapp.generated.resources.ic_login_logo
+import smartcookly.composeapp.generated.resources.ic_next
 
 @Composable
 fun LoginEncouragementScreen(
@@ -24,7 +30,6 @@ fun LoginEncouragementScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Handle system back button
     BackHandler(enabled = true) {
         onBackClick()
     }
@@ -38,82 +43,194 @@ fun LoginEncouragementScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Back button at top
-            Box(
+            // Top bar with back button (fixed)
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
+                IconButton(
+                    onClick = onBackClick,
                     modifier = Modifier
-                        .size(28.dp)
-                        .clickable { onBackClick() },
-                    painter = painterResource(Res.drawable.ic_back),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    contentDescription = "Back"
-                )
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_back),
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
 
+            // Scrollable content
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Placeholder for image at the top
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Illustration container
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .size(180.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = painterResource(Res.drawable.ic_login_logo),
-                        contentDescription = "",
-                        modifier = Modifier.width(200.dp).height(200.dp),
-                        contentScale = ContentScale.Crop
+                        contentDescription = null,
+                        modifier = Modifier.size(140.dp),
+                        contentScale = ContentScale.Fit
                     )
                 }
 
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Feature badge
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(text = "✨", fontSize = 14.sp)
+                        Text(
+                            text = "PREMIUM FEATURES",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
                 // Title
                 Text(
-                    text = "Unlock All App Features",
+                    text = "Unlock Your Full\nCooking Potential",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    lineHeight = 36.sp
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Subtitle
                 Text(
-                    text = "Login to leverage all the powerful features Cookly has to offer. Save your recipes, sync your fridge inventory across devices, personalize your cooking experience, and access exclusive features designed just for logged-in users. Your culinary journey starts with a simple login!",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Sign in to sync your fridge inventory, save recipes, and get personalized meal suggestions.",
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 32.dp)
+                    lineHeight = 24.sp
                 )
 
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Feature list
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    FeatureItem(emoji = "☁️", text = "Sync across all devices")
+                    FeatureItem(emoji = "📖", text = "Save unlimited recipes")
+                    FeatureItem(emoji = "🤖", text = "AI-powered meal planning")
+                    FeatureItem(emoji = "🛒", text = "Smart shopping lists")
+                    FeatureItem(emoji = "📊", text = "Nutrition tracking")
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+
+            // Bottom section with button (fixed)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 // Login button
                 Button(
                     onClick = onLoginClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text(
-                        text = "Login / Sign Up",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Continue with Login",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_next),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Terms text
+                Text(
+                    text = "By continuing, you agree to our Terms of Service",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun FeatureItem(
+    emoji: String,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = emoji, fontSize = 18.sp)
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

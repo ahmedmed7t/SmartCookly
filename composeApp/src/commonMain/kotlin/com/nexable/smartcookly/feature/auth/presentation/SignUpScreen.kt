@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -12,7 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.auth.presentation.signup.SignUpViewModel
 import com.nexable.smartcookly.platform.BackHandler
 import org.jetbrains.compose.resources.painterResource
@@ -29,6 +31,7 @@ import smartcookly.composeapp.generated.resources.ic_back
 import smartcookly.composeapp.generated.resources.ic_email
 import smartcookly.composeapp.generated.resources.ic_lock
 import smartcookly.composeapp.generated.resources.ic_login_logo
+import smartcookly.composeapp.generated.resources.ic_next
 import smartcookly.composeapp.generated.resources.ic_user
 import smartcookly.composeapp.generated.resources.ic_visibility
 import smartcookly.composeapp.generated.resources.ic_visibility_off
@@ -43,12 +46,10 @@ fun SignUpScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Handle system back button
     BackHandler(enabled = true) {
         onBackClick()
     }
-    
-    // Navigate on successful authentication
+
     LaunchedEffect(uiState.isSignUpSuccess) {
         if (uiState.isSignUpSuccess) {
             onSignUpSuccess()
@@ -64,22 +65,30 @@ fun SignUpScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Back button at top
-            Box(
+            // Fixed header with back button
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
+                IconButton(
+                    onClick = onBackClick,
                     modifier = Modifier
-                        .size(28.dp)
-                        .clickable { onBackClick() },
-                    painter = painterResource(Res.drawable.ic_back),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    contentDescription = "Back"
-                )
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_back),
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
 
+            // Scrollable content
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -88,32 +97,30 @@ fun SignUpScreen(
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Logo placeholder
+                // Logo
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(16.dp)
-                        ),
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = painterResource(Res.drawable.ic_login_logo),
                         contentDescription = "Cookly Logo",
-                        modifier = Modifier.size(60.dp),
+                        modifier = Modifier.size(70.dp),
                         contentScale = ContentScale.Fit
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                // App Name
+                // Title
                 Text(
                     text = "Create Account",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
@@ -121,54 +128,57 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Slogan
                 Text(
                     text = "Join Cookly and start your culinary journey",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // First Name Input (Required)
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-
+                // First Name field
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "First Name",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = " *",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                     OutlinedTextField(
                         value = uiState.firstName,
                         onValueChange = { viewModel.updateFirstName(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "First Name",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = " *",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
                         placeholder = {
                             Text(
                                 text = "John",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         },
                         leadingIcon = {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                painter = painterResource(Res.drawable.ic_user),
-                                contentDescription = "First Name",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_user),
+                                    contentDescription = "Name",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         },
                         isError = uiState.firstNameError != null,
                         supportingText = {
@@ -179,56 +189,59 @@ fun SignUpScreen(
                                 )
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            errorBorderColor = MaterialTheme.colorScheme.error,
-                            errorLabelColor = MaterialTheme.colorScheme.error
+                            errorBorderColor = MaterialTheme.colorScheme.error
                         ),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Last Name Input (Optional)
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-
+                // Last Name field
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Last Name (Optional)",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                     OutlinedTextField(
                         value = uiState.lastName,
                         onValueChange = { viewModel.updateLastName(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = {
-                            Text(
-                                text = "Last Name (Optional)",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        },
                         placeholder = {
                             Text(
                                 text = "Doe",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         },
                         leadingIcon = {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                painter = painterResource(Res.drawable.ic_user),
-                                contentDescription = "Last Name",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_user),
+                                    contentDescription = "Name",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface
                         ),
@@ -237,45 +250,50 @@ fun SignUpScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Email Address Input (Required)
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                // Email field
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "Email Address",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = " *",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                     OutlinedTextField(
                         value = uiState.email,
                         onValueChange = { viewModel.updateEmail(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Email Address",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = " *",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
                         placeholder = {
                             Text(
                                 text = "hello@example.com",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         },
                         leadingIcon = {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                painter = painterResource(Res.drawable.ic_email),
-                                contentDescription = "Email",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_email),
+                                    contentDescription = "Email",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         },
                         isError = !uiState.emailError.isNullOrBlank(),
                         supportingText = {
@@ -286,70 +304,73 @@ fun SignUpScreen(
                                 )
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            errorBorderColor = MaterialTheme.colorScheme.error,
-                            errorLabelColor = MaterialTheme.colorScheme.error
+                            errorBorderColor = MaterialTheme.colorScheme.error
                         ),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Password Input (Required)
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                // Password field
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "Password",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = " *",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                     OutlinedTextField(
                         value = uiState.password,
                         onValueChange = { viewModel.updatePassword(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Password",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = " *",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        },
                         placeholder = {
                             Text(
-                                text = "••••••",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "Min. 6 characters",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         },
                         leadingIcon = {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                painter = painterResource(Res.drawable.ic_lock),
-                                contentDescription = "Password",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.ic_lock),
+                                    contentDescription = "Password",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         },
                         trailingIcon = {
-                            IconButton(
-                                onClick = { viewModel.togglePasswordVisibility() }
-                            ) {
-                                val icon =
-                                    if (uiState.passwordVisible) Res.drawable.ic_visibility else Res.drawable.ic_visibility_off
+                            IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
                                 Icon(
-                                    modifier = Modifier.size(18.dp),
-                                    painter = painterResource(icon),
+                                    painter = painterResource(
+                                        if (uiState.passwordVisible) Res.drawable.ic_visibility
+                                        else Res.drawable.ic_visibility_off
+                                    ),
                                     contentDescription = if (uiState.passwordVisible) "Hide password" else "Show password",
+                                    modifier = Modifier.size(20.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -364,59 +385,55 @@ fun SignUpScreen(
                                 )
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            errorBorderColor = MaterialTheme.colorScheme.error,
-                            errorLabelColor = MaterialTheme.colorScheme.error
+                            errorBorderColor = MaterialTheme.colorScheme.error
                         ),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // General Error Message (for Firebase errors)
+                // General Error Message
                 if (!uiState.generalError.isNullOrBlank()) {
-                    Card(
+                    Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        ),
+                        color = MaterialTheme.colorScheme.errorContainer,
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(
-                            text = uiState.generalError.orEmpty(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(text = "⚠️", fontSize = 18.sp)
+                            Text(
+                                text = uiState.generalError.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 // Sign Up Button
-                Box(
+                Button(
+                    onClick = { viewModel.signUp() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
-                                )
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .clickable(enabled = !uiState.isLoading) { 
-                            viewModel.signUp() 
-                        },
-                    contentAlignment = Alignment.Center
+                        .height(56.dp),
+                    enabled = !uiState.isLoading,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
@@ -425,18 +442,27 @@ fun SignUpScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text(
-                            text = "Sign Up",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Create Account",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_next),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Login Link
+                // Login link
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
@@ -447,10 +473,10 @@ fun SignUpScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Login",
+                        text = "Sign in",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { onLoginClick() }
                     )
                 }

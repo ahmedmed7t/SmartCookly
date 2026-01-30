@@ -1,6 +1,5 @@
 package com.nexable.smartcookly.feature.onboarding.presentation.steps
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.presentation.components.SelectableDietaryStyleCard
 
@@ -25,33 +25,39 @@ fun DietaryStyleSelectionStep(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 20.dp)
     ) {
-        Spacer(modifier = Modifier.height(6.dp))
-        
-        // Title
-        Text(
-            text = "Your Eating Style",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Title with emoji
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(text = "🥗", fontSize = 28.sp)
+            Text(
+                text = "Your Eating Style",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Subtitle
         Text(
             text = "We'll tailor your recipe discovery and fridge alerts to your preferences.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 24.dp)
+            lineHeight = 22.sp
         )
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Dietary style list
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(bottom = 0.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             items(DietaryStyle.entries) { style ->
                 SelectableDietaryStyleCard(
@@ -61,21 +67,28 @@ fun DietaryStyleSelectionStep(
                 )
             }
 
-            item {
-                // Other text field (shown when Other is selected)
-                if (showOtherTextField) {
+            // Other text field
+            if (showOtherTextField) {
+                item {
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = otherDietaryStyleText,
                         onValueChange = onOtherTextChange,
                         label = { Text("Specify other dietary style") },
                         placeholder = { Text("e.g., Gluten-free, Paleo...") },
-                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

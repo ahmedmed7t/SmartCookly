@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -11,12 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_check
 import smartcookly.composeapp.generated.resources.ic_checked
 
 @Composable
@@ -26,89 +27,66 @@ fun SelectableCuisineCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                // Lighter background for selected state
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
-        ),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         border = BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outline
-            }
-        )
+            color = borderColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Row to position flag at top right
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
+            Column {
+                // Emoji with background
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Flag icon at top right with colored rounded rectangle background
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                if (isSelected) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                } else {
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                }
-                            )
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = cuisine.emoji,
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                    }
+                    Text(
+                        text = cuisine.emoji,
+                        fontSize = 24.sp
+                    )
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Cuisine name below the flag
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Text(
                     text = cuisine.displayName,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            
-            // Selected checkmark badge with white background and primary tinted icon
+
+            // Selection indicator
             if (isSelected) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .size(24.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.surface),
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(Res.drawable.ic_checked),
+                        painter = painterResource(Res.drawable.ic_check),
                         contentDescription = "Selected",
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

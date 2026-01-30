@@ -161,11 +161,7 @@ class OpenAIApiClient(
                 val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "OTHER"
                 val daysUntilExpiration = obj["estimated_days_until_expiration"]?.jsonPrimitive?.content?.toIntOrNull()
                 
-                val category = try {
-                    FoodCategory.valueOf(categoryStr.uppercase())
-                } catch (e: IllegalArgumentException) {
-                    FoodCategory.OTHER
-                }
+                val category = FoodCategory.fromLegacyValue(categoryStr)
                 
                 val expirationDate = daysUntilExpiration?.let { days ->
                     val today = Clock.System.now()
