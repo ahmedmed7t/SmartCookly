@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ReviewScanViewModel(
+    imageBytes: ByteArray,
     private val openAIApiClient: OpenAIApiClient,
     private val repository: FridgeRepository,
     private val ingredientRepository: IngredientRepository,
@@ -28,6 +29,10 @@ class ReviewScanViewModel(
 
     private val _reviewedItems = mutableListOf<FridgeItem>()
     private val _autoSavedItems = mutableListOf<FridgeItem>()
+
+    init {
+        analyzeImage(imageBytes)
+    }
 
     fun analyzeImage(imageBytes: ByteArray) {
         viewModelScope.launch {
@@ -88,6 +93,29 @@ class ReviewScanViewModel(
             reviewedItems = _reviewedItems.toList(),
             autoSavedItems = _autoSavedItems.toList()
         )
+    }
+    
+    fun updateItem(updatedItem: FridgeItem) {
+        val items = _uiState.value.detectedItems.toMutableList()
+        val index = items.indexOfFirst { it.id == updatedItem.id }
+        if (index != -1) {
+            items[index] = updatedItem
+            // Also update in reviewedItems and autoSavedItems if present
+            val reviewedIndex = _reviewedItems.indexOfFirst { it.id == updatedItem.id }
+            if (reviewedIndex != -1) {
+                _reviewedItems[reviewedIndex] = updatedItem
+            }
+            val autoSavedIndex = _autoSavedItems.indexOfFirst { it.id == updatedItem.id }
+            if (autoSavedIndex != -1) {
+                _autoSavedItems[autoSavedIndex] = updatedItem
+            }
+            
+            _uiState.value = _uiState.value.copy(
+                detectedItems = items,
+                reviewedItems = _reviewedItems.toList(),
+                autoSavedItems = _autoSavedItems.toList()
+            )
+        }
     }
 
     fun saveToFridge() {

@@ -260,9 +260,6 @@ fun AppNavigation(
                         onSaveComplete = {
                             ImageCache.clearImage()
                             navController.popBackStack(Screen.Fridge.route, inclusive = false)
-                        },
-                        onNavigateToEditItem = { item ->
-                            onNavigateToEditIngredient(item)
                         }
                     )
                 }

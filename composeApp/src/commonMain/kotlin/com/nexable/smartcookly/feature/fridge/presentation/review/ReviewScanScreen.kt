@@ -2,8 +2,6 @@ package com.nexable.smartcookly.feature.fridge.presentation.review
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,9 +12,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nexable.smartcookly.feature.fridge.presentation.review.components.DetectedItemCard
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
+import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientContent
+import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_back
 
@@ -26,13 +33,17 @@ fun ReviewScanScreen(
     imageBytes: ByteArray,
     onNavigateBack: () -> Unit,
     onSaveComplete: () -> Unit,
-    onNavigateToEditItem: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
-    viewModel: ReviewScanViewModel = koinInject()
+    viewModel: ReviewScanViewModel = koinInject(parameters = { parametersOf(imageBytes) })
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val navController = rememberNavController()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
     
-    LaunchedEffect(imageBytes) {
-        viewModel.analyzeImage(imageBytes)
+    // Determine TopAppBar title based on current route
+    val topBarTitle = when {
+        currentRoute?.startsWith("modify_ingredient") == true -> "Modify Ingredient"
+        else -> "Review Scan"
     }
     
     Scaffold(
@@ -44,32 +55,21 @@ fun ReviewScanScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Review Scan",
+                            text = topBarTitle,
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontSize = 19.sp
                             )
                         )
-                        
-//                        uiState.accuracy?.let { accuracy ->
-//                            Box(
-//                                modifier = Modifier
-//                                    .clip(RoundedCornerShape(12.dp))
-//                                    .background(Color(0xFF4CAF50))
-//                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-//                            ) {
-//                                Text(
-//                                    text = "$accuracy% ACCURACY",
-//                                    style = MaterialTheme.typography.labelSmall.copy(
-//                                        fontWeight = FontWeight.Bold
-//                                    ),
-//                                    color = Color.White
-//                                )
-//                            }
-//                        }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = {
+                        if (navController.currentBackStackEntry != null && navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        } else {
+                            onNavigateBack()
+                        }
+                    }) {
                         Icon(
                             painter = painterResource(Res.drawable.ic_back),
                             contentDescription = "Back",
@@ -83,156 +83,107 @@ fun ReviewScanScreen(
             )
         },
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.background,
-                tonalElevation = 8.dp
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            // Only show bottom bar when on list screen
+            if (currentRoute == "review_scan_list") {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.background,
+                    tonalElevation = 8.dp
                 ) {
-                if (uiState.reviewedItems.isNotEmpty() || uiState.autoSavedItems.isNotEmpty()) {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF4CAF50).copy(alpha = 0.1f))
-                            .padding(12.dp)
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = "✔ ${uiState.reviewedItems.size} ITEMS REVIEWED · ${uiState.autoSavedItems.size} ITEMS AUTO-SAVED",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = Color(0xFF4CAF50)
-                        )
+                        if (uiState.reviewedItems.isNotEmpty() || uiState.autoSavedItems.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF4CAF50).copy(alpha = 0.1f))
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    text = "✔ ${uiState.reviewedItems.size} ITEMS REVIEWED · ${uiState.autoSavedItems.size} ITEMS AUTO-SAVED",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = Color(0xFF4CAF50)
+                                )
+                            }
+                        }
+                        
+                        Button(
+                            onClick = {
+                                viewModel.saveToFridge()
+                                onSaveComplete()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = uiState.detectedItems.isNotEmpty() && !uiState.isLoading,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text("Save to Fridge")
+                        }
                     }
-                }
-                
-                Button(
-                    onClick = {
-                        viewModel.saveToFridge()
-                        onSaveComplete()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = uiState.detectedItems.isNotEmpty() && !uiState.isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text("Save to Fridge")
-                }
                 }
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
+        NavHost(
+            navController = navController,
+            startDestination = "review_scan_list",
+            modifier = Modifier.padding(paddingValues)
         ) {
-            // Image preview placeholder
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(80.dp)
-//                    .background(MaterialTheme.colorScheme.background),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                if (uiState.isLoading) {
-//                    Column(
-//                        horizontalAlignment = Alignment.CenterHorizontally,
-//                        verticalArrangement = Arrangement.spacedBy(8.dp)
-//                    ) {
-//                        CircularProgressIndicator()
-//                        Text(
-//                            text = "ANALYSIS LIVE",
-//                            style = MaterialTheme.typography.labelMedium,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    }
-//                } else {
-//                    Column(
-//                        horizontalAlignment = Alignment.CenterHorizontally,
-//                        verticalArrangement = Arrangement.spacedBy(8.dp)
-//                    ) {
-//                        Text(
-//                            text = "${uiState.detectedItems.size} Items Detected",
-//                            style = MaterialTheme.typography.titleMedium,
-//                            color = MaterialTheme.colorScheme.onSurface
-//                        )
-//                    }
-//                }
-//            }
-            
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "DETECTED INGREDIENTS",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
+            composable("review_scan_list") {
+                ReviewScanListScreen(
+                    viewModel = viewModel,
+                    onNavigateToModify = { itemId ->
+                        navController.navigate("modify_ingredient/$itemId")
+                    }
                 )
-                
-                TextButton(onClick = { /* TODO: Manual add */ }) {
-                    Text(
-                        text = "+ Add Manual",
-                        color = Color(0xFF4CAF50)
-                    )
-                }
             }
             
-            if (uiState.isLoading && uiState.detectedItems.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else if (uiState.detectedItems.isEmpty() && !uiState.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = uiState.error ?: "No items detected",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+            composable(
+                route = "modify_ingredient/{itemId}",
+                arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val itemId = backStackEntry.arguments?.getString("itemId") ?: return@composable
+                val item = uiState.detectedItems.find { it.id == itemId }
+                
+                if (item != null) {
+                    // Create a local ViewModel instance for this modify flow
+                    val modifyViewModel: AddIngredientViewModel = koinInject()
+                    
+                    // Load item data when entering modify screen
+                    LaunchedEffect(item) {
+                        modifyViewModel.loadItem(item)
                     }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.detectedItems) { item ->
-                        DetectedItemCard(
-                            item = item,
-                            onRemove = {
-                                viewModel.removeItem(item.id)
-                            },
-                            onEdit = {
-                                onNavigateToEditItem(item)
-                            }
-                        )
-                    }
+                    
+                    val modifyUiState by modifyViewModel.uiState.collectAsState()
+                    
+                    AddIngredientContent(
+                        uiState = modifyUiState,
+                        onNameChange = { modifyViewModel.updateName(it) },
+                        onCategoryChange = { modifyViewModel.updateCategory(it) },
+                        onExpirationDateChange = { modifyViewModel.updateExpirationDate(it) },
+                        onSaveClick = {
+                            // Update item in ReviewScanViewModel
+                            val updatedItem = FridgeItem(
+                                id = item.id,
+                                name = modifyUiState.name.trim(),
+                                category = modifyUiState.category!!,
+                                expirationDate = modifyUiState.expirationDate,
+                                imageUrl = item.imageUrl
+                            )
+                            viewModel.updateItem(updatedItem)
+                            navController.popBackStack()
+                        },
+                        isModifyMode = true
+                    )
                 }
             }
         }

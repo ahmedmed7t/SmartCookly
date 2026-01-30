@@ -19,4 +19,12 @@ sealed class Screen(val route: String) {
     data object EditHealth : Screen("edit_health")
     data object EditCookingLevel : Screen("edit_cooking_level")
     data object AddIngredient : Screen("add_ingredient")
+    
+    // Sub-navigation routes for ReviewScan flow
+    sealed class ReviewScanSubScreen(route: String) : Screen(route) {
+        data object ReviewScanList : ReviewScanSubScreen("review_scan_list")
+        data object ModifyIngredient : ReviewScanSubScreen("modify_ingredient/{itemId}") {
+            fun createRoute(itemId: String) = "modify_ingredient/$itemId"
+        }
+    }
 }

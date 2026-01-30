@@ -45,7 +45,9 @@ val sharedModule = module {
     
     // ViewModels
     viewModel { FridgeViewModel(get(), get(), get()) }
-    viewModel { ReviewScanViewModel(get(), get(), get(), get(), get()) }
+    viewModel { (imageBytes: ByteArray) ->
+        ReviewScanViewModel(imageBytes, get(), get(), get(), get(), get())
+    }
     viewModel { AddIngredientViewModel(get(), get()) }
     viewModel { OnboardingViewModel(get()) }
     viewModel { SignUpViewModel(get(), get(), get()) }
