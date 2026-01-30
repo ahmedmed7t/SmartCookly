@@ -1,6 +1,6 @@
 package com.nexable.smartcookly.feature.home.presentation
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,11 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,9 +25,7 @@ import org.koin.compose.koinInject
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_chef
 import smartcookly.composeapp.generated.resources.ic_cooking
-import smartcookly.composeapp.generated.resources.ic_fridge
 import smartcookly.composeapp.generated.resources.ic_heart
-import smartcookly.composeapp.generated.resources.ic_user
 
 @Composable
 fun HomeScreen(
@@ -62,7 +57,7 @@ fun HomeScreen(
             // Header Section
             HomeHeader(
                 greeting = greeting,
-                chefName = chefName,
+                displayName = displayName,
                 onProfileClick = onProfileClick,
             )
 
@@ -81,71 +76,120 @@ fun HomeScreen(
 @Composable
 private fun HomeHeader(
     greeting: String,
-    chefName: String,
+    displayName: String?,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val firstName = displayName?.split(" ")?.firstOrNull() ?: "Chef"
+
+    val greetingIcon = when {
+        greeting.contains("MORNING", ignoreCase = true) -> "☀️"
+        greeting.contains("AFTERNOON", ignoreCase = true) -> "🌤️"
+        greeting.contains("EVENING", ignoreCase = true) -> "🌅"
+        else -> "🌙"
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier.weight(1f, fill = false)
+        // Profile Avatar with Chef Icon (Left)
+        Box(
+            modifier = Modifier.clickable(onClick = onProfileClick),
+            contentAlignment = Alignment.Center
         ) {
+            // Circle with border
+            Surface(
+                modifier = Modifier.size(58.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_chef),
+                        contentDescription = "Profile",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+            }
+
+            // Sparkle decoration
             Text(
-                text = greeting,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF16664A),
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = chefName,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
+                text = "✨",
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 6.dp, y = (-4).dp)
             )
         }
-        Spacer(modifier = Modifier.width(6.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Fav Icon
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Color(0xFF16664A).copy(alpha = 0.1f) // Light brown background
-                    )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Greeting and Name Section (Middle)
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            // Greeting on top with icon
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_heart),
-                    contentDescription = "Favourite",
-                    tint = Color(0xFF16664A), // Brown color
-                    modifier = Modifier.size(24.dp)
+                Text(
+                    text = greetingIcon,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = greeting,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-            // Profile Icon
-            IconButton(
-                onClick = onProfileClick,
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Color(0xFF16664A).copy(alpha = 0.1f) // Light brown background
-                    )
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Name below
+            Text(
+                text = firstName.lowercase().replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // Favourites Button (Right) - Outlined circle with thinner border
+        Surface(
+            modifier = Modifier
+                .size(44.dp)
+                .clickable { },
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            border = BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_chef),
-                    contentDescription = "Profile",
-                    tint = Color(0xFF16664A),
-                    modifier = Modifier.size(40.dp)
+                    painter = painterResource(Res.drawable.ic_heart),
+                    contentDescription = "Favourites",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
