@@ -1,6 +1,7 @@
 package com.nexable.smartcookly.feature.home.presentation
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,11 +41,6 @@ fun HomeScreen(
     val greeting = getGreeting()
     val currentUser = authRepository.getCurrentUser()
     val displayName = currentUser?.displayName?.takeIf { it.isNotBlank() }
-    val chefName = if (displayName != null) {
-        "Chef, $displayName"
-    } else {
-        "Smart Chef"
-    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -96,40 +94,66 @@ private fun HomeHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Profile Avatar with Chef Icon (Left)
-        Box(
+        Column(
             modifier = Modifier.clickable(onClick = onProfileClick),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Circle with border
-            Surface(
-                modifier = Modifier.size(58.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            Box(
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(Res.drawable.ic_chef),
-                        contentDescription = "Profile",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(36.dp)
+                // Circle with border
+                Surface(
+                    modifier = Modifier.size(58.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary
                     )
+                ) {
+
+                    // Smaller chef hat icon
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.ic_chef),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillBounds,
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                            modifier = Modifier.size(38.dp).align(Alignment.TopCenter).padding(top = 4.dp)
+                        )
+
+
+                        // First character of user name
+                        Text(
+                            text = firstName.firstOrNull()?.uppercase() ?: "?",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
+                        )
+                    }
                 }
+
+                // Sparkle decoration
+                Text(
+                    text = "✨",
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 6.dp, y = (-4).dp)
+                )
             }
 
-            // Sparkle decoration
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // "Profile" text below the circle
             Text(
-                text = "✨",
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 6.dp, y = (-4).dp)
+                text = "Profile",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium
             )
         }
 
