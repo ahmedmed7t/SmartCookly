@@ -118,6 +118,51 @@ class IngredientRepository {
         }
     }
     
+    suspend fun updateIngredient(userId: String, item: FridgeItem) {
+        try {
+            println("IngredientRepository: Updating ingredient ${item.id} for userId: $userId")
+            val now = Timestamp.now()
+            
+            val data = mutableMapOf<String, Any?>(
+                "name" to item.name,
+                "category" to item.category.name,
+                "updatedAt" to now
+            )
+            
+            // Add expiration date if present
+            item.expirationDate?.let { date ->
+                val instant = date.atStartOfDayIn(TimeZone.currentSystemDefault())
+                val seconds = instant.epochSeconds
+                val nanoseconds = instant.nanosecondsOfSecond
+                data["expirationDate"] = Timestamp(seconds, nanoseconds)
+            } ?: run {
+                data["expirationDate"] = null
+            }
+            
+            // Add imageUrl if present
+            item.imageUrl?.let { url ->
+                data["imageUrl"] = url
+            } ?: run {
+                data["imageUrl"] = ""
+            }
+            
+            // Add freshStatus
+            data["freshStatus"] = item.freshStatus.name
+            
+            println("IngredientRepository: Updating document with data: $data")
+            firestore.collection(usersCollection)
+                .document(userId)
+                .collection(ingredientsSubcollection)
+                .document(item.id)
+                .update(data)
+            println("IngredientRepository: Document updated successfully")
+        } catch (e: Exception) {
+            println("IngredientRepository: Error updating ingredient - ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
+    }
+    
     suspend fun deleteIngredient(userId: String, ingredientId: String) {
         try {
             println("IngredientRepository: Deleting ingredient $ingredientId for userId: $userId")

@@ -26,6 +26,7 @@ fun ReviewScanScreen(
     imageBytes: ByteArray,
     onNavigateBack: () -> Unit,
     onSaveComplete: () -> Unit,
+    onNavigateToEditItem: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
     viewModel: ReviewScanViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -226,6 +227,9 @@ fun ReviewScanScreen(
                             item = item,
                             onRemove = {
                                 viewModel.removeItem(item.id)
+                            },
+                            onEdit = {
+                                onNavigateToEditItem(item)
                             }
                         )
                     }

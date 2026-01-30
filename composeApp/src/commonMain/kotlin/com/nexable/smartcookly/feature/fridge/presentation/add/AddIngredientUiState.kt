@@ -9,5 +9,9 @@ data class AddIngredientUiState(
     val expirationDate: LocalDate? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSaveSuccess: Boolean = false
-)
+    val isSaveSuccess: Boolean = false,
+    val editingItemId: String? = null
+) {
+    val isEditMode: Boolean
+        get() = editingItemId != null
+}

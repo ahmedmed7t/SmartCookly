@@ -11,18 +11,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.nexable.smartcookly.feature.fridge.data.model.FoodCategory
 import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_pen
 import smartcookly.composeapp.generated.resources.ic_trash
+
+// Primary color constant
+private val PrimaryGreen = Color(0xFF16664A)
 
 @Composable
 fun DetectedItemCard(
     item: FridgeItem,
     onRemove: () -> Unit,
+    onEdit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val daysUntilExpiration = item.expirationDate?.let { date ->
@@ -49,32 +56,34 @@ fun DetectedItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Placeholder for image
+            // Category Emoji Avatar
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        color = getCategoryColor(item.category).copy(alpha = 0.15f)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = item.name.take(1).uppercase(),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = item.category.emoji,
+                    fontSize = 24.sp
                 )
             }
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
                     text = item.name,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold
                     ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -98,22 +107,58 @@ fun DetectedItemCard(
                 }
 
                 Text(
-                    text = "CATEGORY: ${item.category.name}",
+                    text = item.category.displayName.lowercase().replaceFirstChar { it.uppercaseChar() },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            IconButton(
-                onClick = onRemove
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_trash),
-                    contentDescription = "Delete item",
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(18.dp)
-                )
+                // Edit Button
+                IconButton(
+                    onClick = onEdit,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_pen),
+                        contentDescription = "Edit item",
+                        tint = PrimaryGreen,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                
+                // Remove Button
+                IconButton(
+                    onClick = onRemove,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_trash),
+                        contentDescription = "Remove item",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
+    }
+}
+
+private fun getCategoryColor(category: FoodCategory): Color {
+    return when (category) {
+        FoodCategory.DAIRY -> Color(0xFF90CAF9)
+        FoodCategory.VEGETABLES -> Color(0xFF81C784)
+        FoodCategory.FRUITS -> Color(0xFFFFAB91)
+        FoodCategory.MEAT -> Color(0xFFEF9A9A)
+        FoodCategory.SEAFOOD -> Color(0xFF80DEEA)
+        FoodCategory.GRAINS -> Color(0xFFFFCC80)
+        FoodCategory.BEVERAGES -> Color(0xFFCE93D8)
+        FoodCategory.CONDIMENTS -> Color(0xFFA5D6A7)
+        FoodCategory.SNACKS -> Color(0xFFFFE082)
+        FoodCategory.FROZEN -> Color(0xFF81D4FA)
+        FoodCategory.OTHER -> Color(0xFFB0BEC5)
     }
 }

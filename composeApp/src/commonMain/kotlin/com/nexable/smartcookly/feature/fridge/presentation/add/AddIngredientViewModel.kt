@@ -48,6 +48,15 @@ class AddIngredientViewModel(
         _uiState.value = _uiState.value.copy(isSaveSuccess = false)
     }
     
+    fun loadItem(item: FridgeItem) {
+        _uiState.value = AddIngredientUiState(
+            name = item.name,
+            category = item.category,
+            expirationDate = item.expirationDate,
+            editingItemId = item.id
+        )
+    }
+    
     fun saveIngredient() {
         viewModelScope.launch {
             val state = _uiState.value
@@ -78,13 +87,28 @@ class AddIngredientViewModel(
             _uiState.value = state.copy(isLoading = true, error = null)
             
             try {
-                val fridgeItem = FridgeItem(
-                    name = state.name.trim(),
-                    category = state.category,
-                    expirationDate = state.expirationDate
-                )
+                val fridgeItem = if (state.isEditMode && state.editingItemId != null) {
+                    // Update existing item
+                    FridgeItem(
+                        id = state.editingItemId,
+                        name = state.name.trim(),
+                        category = state.category,
+                        expirationDate = state.expirationDate
+                    )
+                } else {
+                    // Create new item
+                    FridgeItem(
+                        name = state.name.trim(),
+                        category = state.category,
+                        expirationDate = state.expirationDate
+                    )
+                }
                 
-                ingredientRepository.addIngredient(userId, fridgeItem)
+                if (state.isEditMode) {
+                    ingredientRepository.updateIngredient(userId, fridgeItem)
+                } else {
+                    ingredientRepository.addIngredient(userId, fridgeItem)
+                }
                 
                 // Clear form and set success flag
                 _uiState.value = AddIngredientUiState(
@@ -93,7 +117,7 @@ class AddIngredientViewModel(
             } catch (e: Exception) {
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = e.message ?: "Failed to save ingredient"
+                    error = e.message ?: if (state.isEditMode) "Failed to update ingredient" else "Failed to save ingredient"
                 )
             }
         }

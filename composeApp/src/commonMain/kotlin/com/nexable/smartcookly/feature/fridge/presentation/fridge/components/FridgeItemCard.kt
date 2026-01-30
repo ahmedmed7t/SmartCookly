@@ -1,6 +1,7 @@
 package com.nexable.smartcookly.feature.fridge.presentation.fridge.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +23,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_pen
 import smartcookly.composeapp.generated.resources.ic_trash
 
 // Color Constants
@@ -39,6 +41,7 @@ private val ExpiredRedBg = Color(0xFFFFEBEE)
 fun FridgeItemCard(
     item: FridgeItem,
     onDelete: () -> Unit,
+    onEdit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val status = item.calculateFreshStatus()
@@ -55,7 +58,8 @@ fun FridgeItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp, top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -80,7 +84,7 @@ fun FridgeItemCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Name and Delete Row
+                // Name and Action Buttons Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -97,16 +101,34 @@ fun FridgeItemCard(
                         modifier = Modifier.weight(1f)
                     )
                     
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.size(32.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.ic_trash),
-                            contentDescription = "Delete item",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.size(18.dp)
-                        )
+                        // Edit Button
+                        IconButton(
+                            onClick = onEdit,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_pen),
+                                contentDescription = "Edit item",
+                                tint = PrimaryGreen,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        
+                        // Delete Button
+                        IconButton(
+                            onClick = onDelete,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_trash),
+                                contentDescription = "Delete item",
+                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
 

@@ -28,8 +28,6 @@ import smartcookly.composeapp.generated.resources.ic_fridge
 // Color Constants matching app theme
 private val PrimaryGreen = Color(0xFF16664A)
 private val LightGreen = Color(0xFF9ED6C0)
-private val AccentGold = Color(0xFFF2C94C)
-private val FreshBlue = Color(0xFF1976D2)
 private val GoodGreen = Color(0xFF388E3C)
 private val UrgentOrange = Color(0xFFF57C00)
 private val ExpiredRed = Color(0xFFD32F2F)
@@ -39,6 +37,7 @@ private val ExpiredRed = Color(0xFFD32F2F)
 fun FridgeScreen(
     onNavigateToCamera: () -> Unit,
     onNavigateToAddIngredient: () -> Unit = {},
+    onNavigateToEditIngredient: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
     cameraError: String? = null,
     onCameraErrorDismissed: () -> Unit = {},
     refreshKey: Int = 0,
@@ -46,6 +45,7 @@ fun FridgeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddBottomSheet by remember { mutableStateOf(false) }
+    var itemToDelete by remember { mutableStateOf<com.nexable.smartcookly.feature.fridge.data.model.FridgeItem?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Load ingredients on first composition
@@ -147,7 +147,8 @@ fun FridgeScreen(
                             items(items, key = { it.id }) { item ->
                                 FridgeItemCard(
                                     item = item,
-                                    onDelete = { viewModel.deleteItem(item.id) },
+                                    onDelete = { itemToDelete = item },
+                                    onEdit = { onNavigateToEditIngredient(item) },
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                                 )
                             }
@@ -165,7 +166,8 @@ fun FridgeScreen(
                             items(uiState.items, key = { it.id }) { item ->
                                 FridgeItemCard(
                                     item = item,
-                                    onDelete = { viewModel.deleteItem(item.id) },
+                                    onDelete = { itemToDelete = item },
+                                    onEdit = { onNavigateToEditIngredient(item) },
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                                 )
                             }
@@ -199,6 +201,20 @@ fun FridgeScreen(
                 onDismiss = { showAddBottomSheet = false }
             )
         }
+    }
+    
+    // Delete Confirmation Dialog
+    itemToDelete?.let { item ->
+        DeleteConfirmationDialog(
+            itemName = item.name,
+            onConfirm = {
+                viewModel.deleteItem(item.id)
+                itemToDelete = null
+            },
+            onDismiss = {
+                itemToDelete = null
+            }
+        )
     }
 }
 
@@ -528,5 +544,78 @@ private fun LoadingState(
             )
         }
     }
+}
+
+@Composable
+private fun DeleteConfirmationDialog(
+    itemName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Delete Item",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row {
+                    Text(
+                        text = "Are you sure you want to delete ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "\"$itemName\"?",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Text(
+                    text = "This action cannot be undone.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Delete",
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Cancel")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(20.dp),
+        tonalElevation = 8.dp
+    )
 }
 

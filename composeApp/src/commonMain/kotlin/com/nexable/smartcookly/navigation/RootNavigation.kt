@@ -143,9 +143,17 @@ fun RootNavigation() {
                         navController.navigate(Screen.Profile.route)
                     },
                     onNavigateToAddIngredient = {
+                        EditItemCache.clearEditItem()
                         navController.navigate(Screen.AddIngredient.route)
                     },
-                    fridgeRefreshKey = fridgeRefreshKey
+                    onNavigateToEditIngredient = { item ->
+                        EditItemCache.storeEditItem(item)
+                        navController.navigate(Screen.AddIngredient.route)
+                    },
+                    fridgeRefreshKey = fridgeRefreshKey,
+                    onFridgeRefresh = {
+                        fridgeRefreshKey++
+                    }
                 )
             }
             
@@ -259,11 +267,14 @@ fun RootNavigation() {
             }
             
             composable(Screen.AddIngredient.route) {
+                val editItem = EditItemCache.getEditItem()
                 AddIngredientScreen(
                     onNavigateBack = {
+                        EditItemCache.clearEditItem()
                         fridgeRefreshKey++
                         navController.popBackStack()
-                    }
+                    },
+                    editItem = editItem
                 )
             }
         }

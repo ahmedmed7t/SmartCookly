@@ -43,7 +43,9 @@ fun AppNavigation(
     onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToAddIngredient: () -> Unit = {},
-    fridgeRefreshKey: Int = 0
+    onNavigateToEditIngredient: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
+    fridgeRefreshKey: Int = 0,
+    onFridgeRefresh: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     val authRepository: AuthRepository = koinInject()
@@ -153,6 +155,9 @@ fun AppNavigation(
                         onNavigateToAddIngredient = {
                             onNavigateToAddIngredient()
                         },
+                        onNavigateToEditIngredient = { item ->
+                            onNavigateToEditIngredient(item)
+                        },
                         cameraError = cameraError,
                         onCameraErrorDismissed = { cameraError = null },
                         refreshKey = fridgeRefreshKey
@@ -255,10 +260,14 @@ fun AppNavigation(
                         onSaveComplete = {
                             ImageCache.clearImage()
                             navController.popBackStack(Screen.Fridge.route, inclusive = false)
+                        },
+                        onNavigateToEditItem = { item ->
+                            onNavigateToEditIngredient(item)
                         }
                     )
                 }
             }
+            
         }
     }
 }
