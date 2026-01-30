@@ -106,9 +106,9 @@ fun FridgeScreen(
                     item {
                         FridgeHeader(
                             totalItems = uiState.totalItemCount,
-                            freshCount = uiState.items.count { it.calculateFreshStatus() == FreshStatus.FRESH || it.calculateFreshStatus() == FreshStatus.GOOD },
-                            urgentCount = uiState.items.count { it.calculateFreshStatus() == FreshStatus.URGENT },
-                            expiredCount = uiState.items.count { it.calculateFreshStatus() == FreshStatus.EXPIRED }
+                            freshCount = uiState.freshCount,
+                            urgentCount = uiState.urgentCount,
+                            expiredCount = uiState.expiredCount
                         )
                     }
 

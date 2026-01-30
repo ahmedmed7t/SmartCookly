@@ -14,6 +14,7 @@ import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanView
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingViewModel
 import com.nexable.smartcookly.feature.profile.presentation.ProfileViewModel
 import com.nexable.smartcookly.feature.profile.presentation.edit.EditPreferenceViewModel
+import com.nexable.smartcookly.feature.recipes.presentation.RecipesViewModel
 import com.nexable.smartcookly.feature.user.data.repository.UserRepository
 import com.nexable.smartcookly.platform.ImageUploader
 import com.nexable.smartcookly.platform.ImageUploaderImpl
@@ -54,4 +55,5 @@ val sharedModule = module {
     viewModel { LoginViewModel(get(), get(), get()) }
     viewModel { ProfileViewModel(get(), get(), get()) }
     viewModel { EditPreferenceViewModel(get(), get()) }
+    viewModel { RecipesViewModel(get(), get()) }
 }

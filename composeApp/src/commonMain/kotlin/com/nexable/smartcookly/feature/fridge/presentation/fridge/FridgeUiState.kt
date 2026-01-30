@@ -9,5 +9,8 @@ data class FridgeUiState(
     val selectedCategory: FoodCategory? = null,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
-    val totalItemCount: Int = 0
+    val totalItemCount: Int = 0,
+    val freshCount: Int = 0,
+    val urgentCount: Int = 0,
+    val expiredCount: Int = 0
 )

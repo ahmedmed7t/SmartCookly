@@ -27,6 +27,7 @@ import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeScreen
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanScreen
 import com.nexable.smartcookly.feature.home.presentation.HomeScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
+import com.nexable.smartcookly.feature.recipes.presentation.RecipesScreen
 import com.nexable.smartcookly.platform.CameraLauncher
 import com.nexable.smartcookly.platform.getActivityContext
 import org.jetbrains.compose.resources.DrawableResource
@@ -166,8 +167,7 @@ fun AppNavigation(
             }
             
             composable(Screen.Recipes.route) {
-                // Placeholder for Recipes screen
-                Text("Recipes Screen - Coming Soon")
+                RecipesScreen()
             }
             
             composable(Screen.Shopping.route) {

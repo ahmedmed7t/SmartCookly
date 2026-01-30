@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.fridge.data.model.FoodCategory
+import com.nexable.smartcookly.feature.fridge.data.model.FreshStatus
 import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
 import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
@@ -37,18 +38,21 @@ class FridgeViewModel(
         val filteredItems = items
             .filter { item ->
                 (category == null || item.category == category) &&
-                (query.isEmpty() || item.name.contains(query, ignoreCase = true))
+                        (query.isEmpty() || item.name.contains(query, ignoreCase = true))
             }
-        
+
         val groupedItems = filteredItems.groupBy { it.category }
-        
+
         FridgeUiState(
             items = filteredItems,
             groupedItems = groupedItems,
             selectedCategory = category,
             searchQuery = query,
             isLoading = isLoading,
-            totalItemCount = items.size
+            totalItemCount = items.size,
+            freshCount = items.count { it.calculateFreshStatus() == FreshStatus.FRESH || it.calculateFreshStatus() == FreshStatus.GOOD },
+            urgentCount = items.count { it.calculateFreshStatus() == FreshStatus.URGENT },
+            expiredCount = items.count { it.calculateFreshStatus() == FreshStatus.EXPIRED }
         )
     }.stateIn(
         scope = viewModelScope,
