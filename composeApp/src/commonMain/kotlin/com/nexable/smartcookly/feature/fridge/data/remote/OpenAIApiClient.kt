@@ -7,6 +7,13 @@ import com.nexable.smartcookly.feature.fridge.data.remote.dto.ImageAnalysisReque
 import com.nexable.smartcookly.feature.fridge.data.remote.dto.ImageAnalysisResponse
 import com.nexable.smartcookly.feature.fridge.data.remote.dto.ImageUrl
 import com.nexable.smartcookly.feature.fridge.data.remote.dto.Message
+import com.nexable.smartcookly.feature.onboarding.data.model.CookingLevel
+import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
+import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
+import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
+import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
+import com.nexable.smartcookly.feature.recipes.data.model.Recipe
+import com.nexable.smartcookly.feature.recipes.presentation.DiscoveryMode
 import com.nexable.smartcookly.netwrokUtils.BaseNetworkClient
 import com.nexable.smartcookly.netwrokUtils.NetworkError
 import com.nexable.smartcookly.netwrokUtils.Result
@@ -176,6 +183,184 @@ class OpenAIApiClient(
                 )
             }
         } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    
+    suspend fun discoverRecipes(
+        discoveryMode: DiscoveryMode,
+        cuisines: Set<Cuisine>,
+        fridgeItems: List<FridgeItem>,
+        dietaryStyle: DietaryStyle?,
+        avoidedIngredients: Set<Ingredient>,
+        dislikedIngredients: Set<DislikedIngredient>,
+        cookingLevel: CookingLevel?
+    ): Result<List<Recipe>, NetworkError> {
+        println("OpenAIApiClient: Building recipe discovery prompt...")
+        
+        val prompt = buildRecipeDiscoveryPrompt(
+            discoveryMode = discoveryMode,
+            cuisines = cuisines,
+            fridgeItems = fridgeItems,
+            dietaryStyle = dietaryStyle,
+            avoidedIngredients = avoidedIngredients,
+            dislikedIngredients = dislikedIngredients,
+            cookingLevel = cookingLevel
+        )
+        
+        println("OpenAIApiClient: Prompt length = ${prompt.length} chars")
+        
+        val request = ImageAnalysisRequest(
+            model = "gpt-4o-mini",
+            messages = listOf(
+                Message(
+                    role = "user",
+                    content = listOf(
+                        Content(
+                            type = "text",
+                            text = prompt
+                        )
+                    )
+                )
+            ),
+            max_completion_tokens = 4000
+        )
+        
+        println("OpenAIApiClient: Making API request to OpenAI...")
+        
+        return post<ImageAnalysisResponse>(CHAT_COMPLETIONS_ENDPOINT) {
+            header("Authorization", "Bearer $apiKey")
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.also { result ->
+            when (result) {
+                is Result.Success -> println("OpenAIApiClient: API request succeeded")
+                is Result.Error -> println("OpenAIApiClient: API request failed with ${result.error}")
+            }
+        }.map { response ->
+            println("OpenAIApiClient: Parsing recipes from response...")
+            val recipes = parseRecipes(response, fridgeItems)
+            println("OpenAIApiClient: Parsed ${recipes.size} recipes")
+            recipes
+        }
+    }
+    
+    private fun buildRecipeDiscoveryPrompt(
+        discoveryMode: DiscoveryMode,
+        cuisines: Set<Cuisine>,
+        fridgeItems: List<FridgeItem>,
+        dietaryStyle: DietaryStyle?,
+        avoidedIngredients: Set<Ingredient>,
+        dislikedIngredients: Set<DislikedIngredient>,
+        cookingLevel: CookingLevel?
+    ): String {
+        val cuisineList = if (cuisines.isEmpty()) "Any" else cuisines.joinToString(", ") { it.displayName }
+        val fridgeItemsList = if (fridgeItems.isEmpty()) "None specified" else fridgeItems.joinToString(", ") { it.name }
+        val avoidedList = if (avoidedIngredients.isEmpty()) "None" else avoidedIngredients.joinToString(", ") { it.displayName }
+        val dislikedList = if (dislikedIngredients.isEmpty()) "None" else dislikedIngredients.joinToString(", ") { it.displayName }
+        
+        val modeDescription = when (discoveryMode) {
+            DiscoveryMode.PREFERENCES ->
+                "Suggest recipes based on user preferences and cuisines."
+            DiscoveryMode.FRIDGE ->
+                "Suggest recipes using ingredients available in the fridge."
+            DiscoveryMode.BOTH ->
+                "Suggest recipes that use fridge ingredients AND match preferences."
+        }
+        
+        return """
+            Suggest up to 5 recipes. $modeDescription
+            
+            Preferences:
+            - Dietary: ${dietaryStyle?.displayName ?: "Any"}
+            - Avoid: $avoidedList
+            - Dislike: $dislikedList
+            - Skill: ${cookingLevel?.displayName ?: "Any"}
+            
+            Fridge: $fridgeItemsList
+            Cuisines: $cuisineList
+            
+            Return ONLY a JSON array:
+            [{"name":"Dish Name","image_url":"image url you suggest from network","cuisine":"Italian","cooking_time_minutes":30,"ingredients":["item1","item2"],"fit_percentage":85,"rating":4.5,"description":"Brief description"}]
+        """.trimIndent()
+    }
+    
+    private fun parseRecipes(
+        response: ImageAnalysisResponse,
+        fridgeItems: List<FridgeItem>
+    ): List<Recipe> {
+        val content = response.choices.firstOrNull()?.message?.content
+        
+        if (content == null) {
+            println("OpenAIApiClient: No content in response")
+            return emptyList()
+        }
+        
+        println("OpenAIApiClient: Response content length = ${content.length}")
+        
+        return try {
+            val jsonContent = content.trim()
+            val jsonStart = jsonContent.indexOf('[')
+            val jsonEnd = jsonContent.lastIndexOf(']') + 1
+            
+            if (jsonStart == -1 || jsonEnd == 0) {
+                println("OpenAIApiClient: No JSON array found in response")
+                println("OpenAIApiClient: Content = $jsonContent")
+                return emptyList()
+            }
+            
+            val jsonArrayString = jsonContent.substring(jsonStart, jsonEnd)
+            println("OpenAIApiClient: Extracted JSON array of length ${jsonArrayString.length}")
+            
+            val json = Json { ignoreUnknownKeys = true }
+            val items = json.parseToJsonElement(jsonArrayString).jsonArray
+            
+            println("OpenAIApiClient: Found ${items.size} items in JSON array")
+            
+            val fridgeItemNames = fridgeItems.map { it.name.lowercase() }.toSet()
+            
+            items.mapIndexedNotNull { index, item ->
+                try {
+                    val obj = item.jsonObject
+                    val name = obj["name"]?.jsonPrimitive?.content ?: return@mapIndexedNotNull null
+                    val cuisine = obj["cuisine"]?.jsonPrimitive?.content ?: "Unknown"
+                    val imageUrl = obj["image_url"]?.jsonPrimitive?.content ?: ""
+                    val cookingTime = obj["cooking_time_minutes"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0
+                    val ingredientsArray = obj["ingredients"]?.jsonArray
+                    val ingredients = ingredientsArray?.mapNotNull { it.jsonPrimitive.content } ?: emptyList()
+                    val fitPercentage = obj["fit_percentage"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0
+                    val rating = obj["rating"]?.jsonPrimitive?.content?.toFloatOrNull() ?: 0f
+                    val description = obj["description"]?.jsonPrimitive?.content ?: ""
+                    
+                    // Calculate missing ingredients
+                    val missingIngredients = ingredients.filter { ingredient ->
+                        !fridgeItemNames.any { fridgeName ->
+                            ingredient.lowercase().contains(fridgeName) || fridgeName.contains(ingredient.lowercase())
+                        }
+                    }
+                    
+                    println("OpenAIApiClient: Parsed recipe $index: $name")
+                    
+                    Recipe(
+                        id = "recipe_$index",
+                        name = name,
+                        cuisine = cuisine,
+                        imageUrl = imageUrl,
+                        cookingTimeMinutes = cookingTime,
+                        ingredients = ingredients,
+                        missingIngredients = missingIngredients,
+                        fitPercentage = fitPercentage,
+                        rating = rating,
+                        description = description
+                    )
+                } catch (e: Exception) {
+                    println("OpenAIApiClient: Failed to parse item $index: ${e.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            println("OpenAIApiClient: Parse error: ${e.message}")
+            e.printStackTrace()
             emptyList()
         }
     }

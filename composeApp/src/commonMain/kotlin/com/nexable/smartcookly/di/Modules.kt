@@ -14,11 +14,15 @@ import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanView
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingViewModel
 import com.nexable.smartcookly.feature.profile.presentation.ProfileViewModel
 import com.nexable.smartcookly.feature.profile.presentation.edit.EditPreferenceViewModel
+import com.nexable.smartcookly.feature.recipes.data.repository.RecipeRepository
 import com.nexable.smartcookly.feature.recipes.presentation.RecipesViewModel
+import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesViewModel
 import com.nexable.smartcookly.feature.user.data.repository.UserRepository
 import com.nexable.smartcookly.platform.ImageUploader
 import com.nexable.smartcookly.platform.ImageUploaderImpl
 import com.nexable.smartcookly.platform.getOpenAIApiKey
+import com.nexable.smartcookly.platform.getPexelsApiKey
+import com.nexable.smartcookly.feature.recipes.data.remote.PexelsApiClient
 import com.russhwolf.settings.Settings
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -40,9 +44,11 @@ val sharedModule = module {
     single { ImageStorageRepository(get()) }
     single { AuthRepository() }
     single { UserRepository() }
+    single { RecipeRepository(get(), get()) }
     
     // API Clients
     single { OpenAIApiClient(get(), getOpenAIApiKey()) }
+    single { PexelsApiClient(get(), getPexelsApiKey()) }
     
     // ViewModels
     viewModel { FridgeViewModel(get(), get(), get()) }
@@ -56,4 +62,5 @@ val sharedModule = module {
     viewModel { ProfileViewModel(get(), get(), get()) }
     viewModel { EditPreferenceViewModel(get(), get()) }
     viewModel { RecipesViewModel(get(), get()) }
+    viewModel { DiscoverRecipesViewModel(get(), get(), get()) }
 }

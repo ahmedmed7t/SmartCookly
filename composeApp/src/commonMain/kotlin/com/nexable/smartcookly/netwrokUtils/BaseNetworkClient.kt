@@ -2,6 +2,7 @@ package com.nexable.smartcookly.netwrokUtils
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
@@ -20,10 +21,17 @@ open class BaseNetworkClient(protected val httpClient: HttpClient) {
         val response = try {
             request()
         } catch (e: UnresolvedAddressException) {
+            println("BaseNetworkClient: No internet connection")
             return Result.Error(NetworkError.NO_INTERNET)
+        } catch (e: HttpRequestTimeoutException) {
+            println("BaseNetworkClient: Request timeout - ${e.message}")
+            return Result.Error(NetworkError.REQUEST_TIMEOUT)
         } catch (e: SerializationException) {
+            println("BaseNetworkClient: Serialization error - ${e.message}")
             return Result.Error(NetworkError.SERIALIZATION)
         } catch (e: Exception) {
+            println("BaseNetworkClient: Unknown error - ${e::class.simpleName}: ${e.message}")
+            e.printStackTrace()
             return Result.Error(NetworkError.UNKNOWN)
         }
 

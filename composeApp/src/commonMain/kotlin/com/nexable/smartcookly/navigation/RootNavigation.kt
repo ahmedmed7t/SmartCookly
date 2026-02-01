@@ -19,6 +19,7 @@ import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingScreen
 import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
 import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientScreen
+import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesScreen
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -150,6 +151,9 @@ fun RootNavigation() {
                         EditItemCache.storeEditItem(item)
                         navController.navigate(Screen.AddIngredient.route)
                     },
+                    onNavigateToDiscoverRecipes = {
+                        navController.navigate(Screen.DiscoverRecipes.route)
+                    },
                     fridgeRefreshKey = fridgeRefreshKey,
                     onFridgeRefresh = {
                         fridgeRefreshKey++
@@ -275,6 +279,15 @@ fun RootNavigation() {
                         navController.popBackStack()
                     },
                     editItem = editItem
+                )
+            }
+            
+            composable(Screen.DiscoverRecipes.route) {
+                DiscoverRecipesScreen(
+                    onNavigateBack = {
+                        DiscoveryParamsCache.clearParams()
+                        navController.popBackStack()
+                    }
                 )
             }
         }

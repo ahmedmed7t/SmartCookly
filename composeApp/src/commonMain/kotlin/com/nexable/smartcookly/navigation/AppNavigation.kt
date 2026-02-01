@@ -45,6 +45,7 @@ fun AppNavigation(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToAddIngredient: () -> Unit = {},
     onNavigateToEditIngredient: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
+    onNavigateToDiscoverRecipes: () -> Unit = {},
     fridgeRefreshKey: Int = 0,
     onFridgeRefresh: () -> Unit = {}
 ) {
@@ -167,7 +168,9 @@ fun AppNavigation(
             }
             
             composable(Screen.Recipes.route) {
-                RecipesScreen()
+                com.nexable.smartcookly.feature.recipes.presentation.RecipesScreen(
+                    onNavigateToDiscoverRecipes = onNavigateToDiscoverRecipes
+                )
             }
             
             composable(Screen.Shopping.route) {

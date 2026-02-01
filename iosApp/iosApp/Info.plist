@@ -15,5 +15,13 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>We need camera access to scan food ingredients</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
 </dict>
 </plist>

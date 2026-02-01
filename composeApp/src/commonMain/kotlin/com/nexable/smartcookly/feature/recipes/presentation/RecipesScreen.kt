@@ -20,6 +20,7 @@ private val PrimaryGreen = Color(0xFF16664A)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipesScreen(
+    onNavigateToDiscoverRecipes: () -> Unit = {},
     viewModel: RecipesViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -52,12 +53,26 @@ fun RecipesScreen(
             Column {
                 Spacer(modifier = Modifier.height(2.dp))
                 Button(
-                    onClick = { viewModel.discoverRecipes() },
+                    onClick = {
+                        // Cache discovery parameters
+                        val cuisines = when (uiState.cuisineContext) {
+                            CuisineContext.FAVORITES -> uiState.favoriteCuisines
+                            CuisineContext.SELECT_OTHERS -> uiState.selectedOtherCuisines
+                        }
+                        com.nexable.smartcookly.navigation.DiscoveryParamsCache.storeParams(
+                            com.nexable.smartcookly.navigation.DiscoveryParams(
+                                discoveryMode = uiState.discoveryMode,
+                                cuisines = cuisines
+                            )
+                        )
+                        // Navigate to discover screen
+                        onNavigateToDiscoverRecipes()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
                         .padding(horizontal = 32.dp),
-                    enabled = !uiState.isLoading && canDiscoverRecipes(uiState),
+                    enabled = canDiscoverRecipes(uiState),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PrimaryGreen,

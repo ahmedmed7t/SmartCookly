@@ -77,6 +77,10 @@ kotlin {
             implementation(libs.gitlive.firebase.storage)
             implementation(libs.uuid)
             implementation(libs.multiplatform.settings)
+            
+            // Coil for async image loading
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
 
         }
         iosMain.dependencies {
