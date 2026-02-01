@@ -7,6 +7,7 @@ import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
 import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
+import com.nexable.smartcookly.feature.recipes.data.model.CookingStep
 import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import com.nexable.smartcookly.feature.recipes.data.remote.PexelsApiClient
 import com.nexable.smartcookly.feature.recipes.presentation.DiscoveryMode
@@ -72,5 +73,12 @@ class RecipeRepository(
         }
         
         deferredRecipes.awaitAll()
+    }
+    
+    suspend fun getCookingSteps(
+        recipeName: String,
+        ingredients: List<String>
+    ): Result<List<CookingStep>, NetworkError> {
+        return openAIApiClient.fetchCookingSteps(recipeName, ingredients)
     }
 }

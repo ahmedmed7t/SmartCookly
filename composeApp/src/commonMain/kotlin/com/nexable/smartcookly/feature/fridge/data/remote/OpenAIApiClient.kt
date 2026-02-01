@@ -12,6 +12,7 @@ import com.nexable.smartcookly.feature.onboarding.data.model.Cuisine
 import com.nexable.smartcookly.feature.onboarding.data.model.DislikedIngredient
 import com.nexable.smartcookly.feature.onboarding.data.model.DietaryStyle
 import com.nexable.smartcookly.feature.onboarding.data.model.Ingredient
+import com.nexable.smartcookly.feature.recipes.data.model.CookingStep
 import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import com.nexable.smartcookly.feature.recipes.presentation.DiscoveryMode
 import com.nexable.smartcookly.netwrokUtils.BaseNetworkClient
@@ -223,7 +224,7 @@ class OpenAIApiClient(
                     )
                 )
             ),
-            max_completion_tokens = 4000
+            max_completion_tokens = 2000
         )
         
         println("OpenAIApiClient: Making API request to OpenAI...")
@@ -242,6 +243,134 @@ class OpenAIApiClient(
             val recipes = parseRecipes(response, fridgeItems)
             println("OpenAIApiClient: Parsed ${recipes.size} recipes")
             recipes
+        }
+    }
+    
+    suspend fun fetchCookingSteps(
+        recipeName: String,
+        ingredients: List<String>
+    ): Result<List<CookingStep>, NetworkError> {
+        println("OpenAIApiClient: Fetching cooking steps for recipe: $recipeName")
+        
+        val prompt = buildCookingStepsPrompt(recipeName, ingredients)
+        
+        val request = ImageAnalysisRequest(
+            model = "gpt-4o-mini",
+            messages = listOf(
+                Message(
+                    role = "user",
+                    content = listOf(
+                        Content(
+                            type = "text",
+                            text = prompt
+                        )
+                    )
+                )
+            ),
+            max_completion_tokens = 2000
+        )
+        
+        println("OpenAIApiClient: Making API request for cooking steps...")
+        
+        return post<ImageAnalysisResponse>(CHAT_COMPLETIONS_ENDPOINT) {
+            header("Authorization", "Bearer $apiKey")
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.also { result ->
+            when (result) {
+                is Result.Success -> println("OpenAIApiClient: Cooking steps API request succeeded")
+                is Result.Error -> println("OpenAIApiClient: Cooking steps API request failed with ${result.error}")
+            }
+        }.map { response ->
+            println("OpenAIApiClient: Parsing cooking steps from response...")
+            val steps = parseCookingSteps(response)
+            println("OpenAIApiClient: Parsed ${steps.size} cooking steps")
+            steps
+        }
+    }
+    
+    private fun buildCookingStepsPrompt(
+        recipeName: String,
+        ingredients: List<String>
+    ): String {
+        val ingredientsList = ingredients.joinToString(", ")
+        
+        return """
+            Provide detailed step-by-step cooking instructions for: $recipeName
+            
+            Ingredients available: $ingredientsList
+            
+            Return ONLY a JSON array with cooking steps:
+            [{
+              "step_number":1,
+              "description":"Heat oil in a large pan over medium heat",
+              "ingredients_used":["olive oil"],
+              "time_minutes":2
+            },
+            {
+              "step_number":2,
+              "description":"Add onions and garlic, saute until fragrant",
+              "ingredients_used":["onion","garlic"],
+              "time_minutes":5
+            }]
+            
+            Make sure each step includes:
+            - step_number: sequential number starting from 1
+            - description: clear, detailed instruction
+            - ingredients_used: array of ingredients used in this step (can be empty)
+            - time_minutes: estimated time for this step
+        """.trimIndent()
+    }
+    
+    private fun parseCookingSteps(response: ImageAnalysisResponse): List<CookingStep> {
+        val content = response.choices.firstOrNull()?.message?.content
+        
+        if (content == null) {
+            println("OpenAIApiClient: No content in cooking steps response")
+            return emptyList()
+        }
+        
+        println("OpenAIApiClient: Cooking steps response content length = ${content.length}")
+        
+        return try {
+            val jsonContent = content.trim()
+            val jsonStart = jsonContent.indexOf('[')
+            val jsonEnd = jsonContent.lastIndexOf(']') + 1
+            
+            if (jsonStart == -1 || jsonEnd == 0) {
+                println("OpenAIApiClient: No JSON array found in cooking steps response")
+                println("OpenAIApiClient: Content = $jsonContent")
+                return emptyList()
+            }
+            
+            val jsonArrayString = jsonContent.substring(jsonStart, jsonEnd)
+            println("OpenAIApiClient: Extracted cooking steps JSON array of length ${jsonArrayString.length}")
+            
+            val json = Json { ignoreUnknownKeys = true }
+            val items = json.parseToJsonElement(jsonArrayString).jsonArray
+            
+            println("OpenAIApiClient: Found ${items.size} cooking steps in JSON array")
+            
+            items.mapNotNull { item ->
+                try {
+                    val stepObj = item.jsonObject
+                    CookingStep(
+                        stepNumber = stepObj["step_number"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+                        description = stepObj["description"]?.jsonPrimitive?.content ?: "",
+                        ingredientsUsed = stepObj["ingredients_used"]?.jsonArray?.mapNotNull {
+                            it.jsonPrimitive.content
+                        } ?: emptyList(),
+                        timeMinutes = stepObj["time_minutes"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0
+                    )
+                } catch (e: Exception) {
+                    println("OpenAIApiClient: Failed to parse cooking step: ${e.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            println("OpenAIApiClient: Parse error for cooking steps: ${e.message}")
+            e.printStackTrace()
+            emptyList()
         }
     }
     
@@ -281,7 +410,15 @@ class OpenAIApiClient(
             Cuisines: $cuisineList
             
             Return ONLY a JSON array:
-            [{"name":"Dish Name","image_url":"image url you suggest from network","cuisine":"Italian","cooking_time_minutes":30,"ingredients":["item1","item2"],"fit_percentage":85,"rating":4.5,"description":"Brief description"}]
+            [{
+              "name":"Dish Name",
+              "cuisine":"Italian",
+              "cooking_time_minutes":30,
+              "ingredients":["item1","item2","item3"],
+              "fit_percentage":85,
+              "rating":4.5,
+              "description":"Brief description"
+            }]
         """.trimIndent()
     }
     
@@ -332,6 +469,9 @@ class OpenAIApiClient(
                     val rating = obj["rating"]?.jsonPrimitive?.content?.toFloatOrNull() ?: 0f
                     val description = obj["description"]?.jsonPrimitive?.content ?: ""
                     
+                    // Cooking steps will be fetched on-demand when user starts cooking
+                    val cookingSteps = emptyList<CookingStep>()
+                    
                     // Calculate missing ingredients
                     val missingIngredients = ingredients.filter { ingredient ->
                         !fridgeItemNames.any { fridgeName ->
@@ -351,7 +491,8 @@ class OpenAIApiClient(
                         missingIngredients = missingIngredients,
                         fitPercentage = fitPercentage,
                         rating = rating,
-                        description = description
+                        description = description,
+                        cookingSteps = cookingSteps
                     )
                 } catch (e: Exception) {
                     println("OpenAIApiClient: Failed to parse item $index: ${e.message}")

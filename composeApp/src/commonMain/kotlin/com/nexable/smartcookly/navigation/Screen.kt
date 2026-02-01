@@ -35,5 +35,8 @@ sealed class Screen(val route: String) {
         data object RecipeDetails : DiscoverRecipesSubScreen("recipe_details/{recipeId}") {
             fun createRoute(recipeId: String) = "recipe_details/$recipeId"
         }
+        data object CookingMode : DiscoverRecipesSubScreen("cooking_mode/{recipeId}") {
+            fun createRoute(recipeId: String) = "cooking_mode/$recipeId"
+        }
     }
 }

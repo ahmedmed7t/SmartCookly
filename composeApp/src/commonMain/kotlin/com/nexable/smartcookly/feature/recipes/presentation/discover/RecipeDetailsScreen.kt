@@ -3,6 +3,7 @@ package com.nexable.smartcookly.feature.recipes.presentation.discover
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -16,12 +17,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.nexable.smartcookly.feature.recipes.data.model.Recipe
+import org.jetbrains.compose.resources.painterResource
+import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_heart
 
 private val PrimaryGreen = Color(0xFF16664A)
 
 @Composable
 fun RecipeDetailsScreen(
     recipe: Recipe?,
+    onStartCooking: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (recipe == null) {
@@ -96,6 +101,29 @@ fun RecipeDetailsScreen(
                     )
                 }
             }
+            
+            // Favorite button overlay
+            Surface(
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.95f),
+                shadowElevation = 2.dp,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .size(32.dp)
+            ) {
+                IconButton(
+                    onClick = { /* TODO: Toggle favorite */ },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_heart),
+                        contentDescription = "Favorite",
+                        tint = Color(0xFF95A5A6),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
         
         // Recipe Details
@@ -161,37 +189,69 @@ fun RecipeDetailsScreen(
                 )
             }
             
-            // Coming Soon Message
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
+            // Start Cooking Button
+            Button(
+                onClick = onStartCooking,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryGreen,
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 2.dp
+                )
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "🚧",
-                        fontSize = 48.sp
+                        text = "👨‍🍳",
+                        fontSize = 24.sp
                     )
-                    Text(
-                        text = "Full Recipe Details",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Coming Soon",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "We're working on adding detailed recipe instructions, ingredient lists, and step-by-step cooking guides.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = "Ready to Cook?",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 11.sp,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
+                        Text(
+                            text = "Let's Start Cooking!",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
+            
+            // Ingredients Section
+            Text(
+                text = "Ingredients",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                recipe.ingredients.forEach { ingredient ->
+                    val isAvailable = !recipe.missingIngredients.contains(ingredient)
+                    IngredientItem(
+                        ingredient = ingredient,
+                        isAvailable = isAvailable,
+                        onAddToShoppingList = { /* TODO: Add to shopping list */ }
                     )
                 }
             }
@@ -234,3 +294,89 @@ private fun InfoCard(
         }
     }
 }
+
+@Composable
+private fun IngredientItem(
+    ingredient: String,
+    isAvailable: Boolean,
+    onAddToShoppingList: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isAvailable) {
+            PrimaryGreen.copy(alpha = 0.08f)
+        } else {
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+        }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                // Status icon
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isAvailable) {
+                        PrimaryGreen.copy(alpha = 0.15f)
+                    } else {
+                        MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
+                    }
+                ) {
+                    Text(
+                        text = if (isAvailable) "✓" else "✕",
+                        fontSize = 14.sp,
+                        color = if (isAvailable) PrimaryGreen else MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(6.dp)
+                    )
+                }
+                
+                // Ingredient name
+                Text(
+                    text = ingredient,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            // Add to shopping list button (only for missing ingredients)
+            if (!isAvailable) {
+                TextButton(
+                    onClick = onAddToShoppingList,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = PrimaryGreen
+                    ),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "+",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "List",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+

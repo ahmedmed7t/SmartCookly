@@ -10,5 +10,6 @@ data class Recipe(
     val missingIngredients: List<String>,
     val fitPercentage: Int, // 0-100
     val rating: Float,
-    val description: String = ""
+    val description: String = "",
+    val cookingSteps: List<CookingStep> = emptyList()
 )

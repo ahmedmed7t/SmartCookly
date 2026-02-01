@@ -17,6 +17,7 @@ import com.nexable.smartcookly.feature.profile.presentation.edit.EditPreferenceV
 import com.nexable.smartcookly.feature.recipes.data.repository.RecipeRepository
 import com.nexable.smartcookly.feature.recipes.presentation.RecipesViewModel
 import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesViewModel
+import com.nexable.smartcookly.feature.recipes.presentation.cooking.CookingModeViewModel
 import com.nexable.smartcookly.feature.user.data.repository.UserRepository
 import com.nexable.smartcookly.platform.ImageUploader
 import com.nexable.smartcookly.platform.ImageUploaderImpl
@@ -63,4 +64,5 @@ val sharedModule = module {
     viewModel { EditPreferenceViewModel(get(), get()) }
     viewModel { RecipesViewModel(get(), get()) }
     viewModel { DiscoverRecipesViewModel(get(), get(), get()) }
+    viewModel { CookingModeViewModel(get()) }
 }

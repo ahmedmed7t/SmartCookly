@@ -287,6 +287,14 @@ fun RootNavigation() {
                     onNavigateBack = {
                         DiscoveryParamsCache.clearParams()
                         navController.popBackStack()
+                    },
+                    onNavigateToHome = {
+                        DiscoveryParamsCache.clearParams()
+                        navController.navigate(Screen.App.route) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
                     }
                 )
             }

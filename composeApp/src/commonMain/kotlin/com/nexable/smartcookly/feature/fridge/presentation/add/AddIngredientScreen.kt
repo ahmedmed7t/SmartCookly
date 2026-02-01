@@ -37,15 +37,26 @@ fun AddIngredientScreen(
     
     // Show success snackbar when save succeeds
     LaunchedEffect(uiState.isSaveSuccess) {
-        if (uiState.isSaveSuccess && !isModifyMode) {
-            val message = if (uiState.isEditMode) {
-                "Ingredient updated successfully"
+        if (uiState.isSaveSuccess) {
+            if (isModifyMode) {
+                // In modify mode, navigate back after showing message
+                val message = "Ingredient updated successfully"
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearSuccessFlag()
+                onNavigateBack()
+            } else if (uiState.isEditMode) {
+                // In edit mode, navigate back after update
+                val message = "Ingredient updated successfully"
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearSuccessFlag()
+                onNavigateBack()
             } else {
-                "Ingredient added successfully"
+                // In add mode, just show message and stay on screen
+                val message = "Ingredient added successfully"
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearSuccessFlag()
+                // Don't navigate back - allow adding multiple ingredients
             }
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearSuccessFlag()
-            onNavigateBack()
         }
     }
 

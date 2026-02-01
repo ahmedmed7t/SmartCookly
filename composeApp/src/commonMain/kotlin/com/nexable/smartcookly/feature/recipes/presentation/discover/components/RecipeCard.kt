@@ -23,7 +23,6 @@ import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import org.jetbrains.compose.resources.painterResource
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_check
-import smartcookly.composeapp.generated.resources.ic_heart
 
 private val LightGreen = Color(0xFF2D8B6A)
 private val AccentOrange = Color(0xFFFF6B35)
@@ -140,13 +139,11 @@ fun RecipeCard(
                         )
                 )
                 
-                // Top row - Cuisine badge and Favorite button
-                Row(
+                // Top row - Cuisine badge
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                        .padding(12.dp)
                 ) {
                     // Cuisine badge
                     Surface(
@@ -163,26 +160,6 @@ fun RecipeCard(
                             letterSpacing = 0.5.sp,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                         )
-                    }
-                    
-                    // Favorite button
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.95f),
-                        shadowElevation = 2.dp,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        IconButton(
-                            onClick = { /* TODO: Toggle favorite */ },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.ic_heart),
-                                contentDescription = "Favorite",
-                                tint = Color(0xFF95A5A6),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
                     }
                 }
                 
