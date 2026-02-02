@@ -2,6 +2,9 @@ package com.nexable.smartcookly.feature.recipes.presentation.cooking
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
+import com.nexable.smartcookly.feature.favorites.data.repository.FavoritesRepository
+import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import com.nexable.smartcookly.feature.recipes.data.repository.RecipeRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -12,7 +15,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CookingModeViewModel(
-    private val recipeRepository: RecipeRepository
+    private val recipeRepository: RecipeRepository,
+    private val favoritesRepository: FavoritesRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     
     companion object {
@@ -26,9 +31,32 @@ class CookingModeViewModel(
     
     private var timerJob: Job? = null
     
-    fun loadCookingSteps(recipeName: String, ingredients: List<String>) {
+    fun loadCookingSteps(
+        recipeName: String, 
+        ingredients: List<String>,
+        preLoadedSteps: List<com.nexable.smartcookly.feature.recipes.data.model.CookingStep> = emptyList()
+    ) {
         // Create a cache key from recipe name and ingredients
         val recipeKey = "$recipeName|${ingredients.joinToString(",")}"
+        
+        // If we have pre-loaded steps (e.g., from favorites), use them directly
+        if (preLoadedSteps.isNotEmpty()) {
+            // Cache them for consistency
+            cachedRecipeKey = recipeKey
+            cachedSteps = cachedSteps + (recipeKey to preLoadedSteps)
+            
+            _uiState.update { 
+                it.copy(
+                    recipeName = recipeName,
+                    ingredients = ingredients,
+                    steps = preLoadedSteps,
+                    isLoading = false,
+                    error = null,
+                    currentStepIndex = 0
+                )
+            }
+            return
+        }
         
         // Check if we already have steps cached for this recipe
         val cachedStepsForRecipe = cachedSteps[recipeKey]
@@ -187,6 +215,45 @@ class CookingModeViewModel(
                 timerFinished = false,
                 isCookingComplete = false
             )
+        }
+    }
+    
+    fun addToFavorites(recipe: Recipe) {
+        val userId = authRepository.getCurrentUser()?.uid
+        if (userId == null) {
+            _uiState.update {
+                it.copy(favoriteError = "User not authenticated")
+            }
+            return
+        }
+        
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isAddingToFavorites = true,
+                    favoriteError = null,
+                    favoriteAdded = false
+                )
+            }
+            
+            try {
+                // Merge the loaded cooking steps into the recipe
+                val recipeWithSteps = recipe.copy(cookingSteps = _uiState.value.steps)
+                favoritesRepository.addToFavorites(userId, recipeWithSteps)
+                _uiState.update {
+                    it.copy(
+                        isAddingToFavorites = false,
+                        favoriteAdded = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isAddingToFavorites = false,
+                        favoriteError = "Failed to add recipe to favorites: ${e.message}"
+                    )
+                }
+            }
         }
     }
     

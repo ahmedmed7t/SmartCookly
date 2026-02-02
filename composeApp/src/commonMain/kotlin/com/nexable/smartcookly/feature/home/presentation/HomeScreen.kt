@@ -35,6 +35,7 @@ fun HomeScreen(
     onScanFridgeClick: () -> Unit = {},
     onStartCookingClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onFavoritesClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     authRepository: AuthRepository = koinInject()
 ) {
@@ -57,6 +58,7 @@ fun HomeScreen(
                 greeting = greeting,
                 displayName = displayName,
                 onProfileClick = onProfileClick,
+                onFavoritesClick = onFavoritesClick
             )
 
             // AI Cooking Banner
@@ -76,6 +78,7 @@ private fun HomeHeader(
     greeting: String,
     displayName: String?,
     onProfileClick: () -> Unit,
+    onFavoritesClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val firstName = displayName?.split(" ")?.firstOrNull() ?: "Chef"
@@ -197,7 +200,7 @@ private fun HomeHeader(
         Surface(
             modifier = Modifier
                 .size(44.dp)
-                .clickable { },
+                .clickable(onClick = onFavoritesClick),
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer,
             border = BorderStroke(

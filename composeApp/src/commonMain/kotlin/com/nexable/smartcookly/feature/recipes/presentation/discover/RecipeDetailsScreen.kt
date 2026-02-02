@@ -27,6 +27,10 @@ private val PrimaryGreen = Color(0xFF16664A)
 fun RecipeDetailsScreen(
     recipe: Recipe?,
     onStartCooking: () -> Unit = {},
+    isAddingFavorite: Boolean = false,
+    isFavorited: Boolean = false,
+    onAddToFavorites: () -> Unit = {},
+    showFavoriteButton: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     if (recipe == null) {
@@ -102,26 +106,37 @@ fun RecipeDetailsScreen(
                 }
             }
             
-            // Favorite button overlay
-            Surface(
-                shape = CircleShape,
-                color = Color.White.copy(alpha = 0.95f),
-                shadowElevation = 2.dp,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(12.dp)
-                    .size(32.dp)
-            ) {
-                IconButton(
-                    onClick = { /* TODO: Toggle favorite */ },
-                    modifier = Modifier.size(32.dp)
+            // Favorite button overlay - only show if showFavoriteButton is true
+            if (showFavoriteButton) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.95f),
+                    shadowElevation = 2.dp,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(12.dp)
+                        .size(32.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(Res.drawable.ic_heart),
-                        contentDescription = "Favorite",
-                        tint = Color(0xFF95A5A6),
-                        modifier = Modifier.size(16.dp)
-                    )
+                    IconButton(
+                        onClick = onAddToFavorites,
+                        enabled = !isAddingFavorite,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        if (isAddingFavorite) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = PrimaryGreen
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_heart),
+                                contentDescription = "Favorite",
+                                tint = if (isFavorited) Color(0xFFE74C3C) else Color(0xFF95A5A6), // Red when favorited, grey otherwise
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -244,14 +259,12 @@ fun RecipeDetailsScreen(
             )
             
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 recipe.ingredients.forEach { ingredient ->
-                    val isAvailable = !recipe.missingIngredients.contains(ingredient)
                     IngredientItem(
                         ingredient = ingredient,
-                        isAvailable = isAvailable,
-                        onAddToShoppingList = { /* TODO: Add to shopping list */ }
+                        onAddToCart = { /* TODO: Add to shopping cart */ }
                     )
                 }
             }
@@ -295,85 +308,161 @@ private fun InfoCard(
     }
 }
 
+// Get appropriate emoji for ingredient
+private fun getIngredientEmoji(ingredient: String): String {
+    val lowerIngredient = ingredient.lowercase()
+    return when {
+        // Proteins
+        lowerIngredient.contains("chicken") -> "🍗"
+        lowerIngredient.contains("beef") || lowerIngredient.contains("steak") -> "🥩"
+        lowerIngredient.contains("pork") || lowerIngredient.contains("bacon") -> "🥓"
+        lowerIngredient.contains("fish") || lowerIngredient.contains("salmon") || lowerIngredient.contains("tuna") -> "🐟"
+        lowerIngredient.contains("shrimp") || lowerIngredient.contains("prawn") -> "🦐"
+        lowerIngredient.contains("egg") -> "🥚"
+        
+        // Dairy
+        lowerIngredient.contains("milk") -> "🥛"
+        lowerIngredient.contains("cheese") -> "🧀"
+        lowerIngredient.contains("butter") -> "🧈"
+        
+        // Vegetables
+        lowerIngredient.contains("tomato") -> "🍅"
+        lowerIngredient.contains("carrot") -> "🥕"
+        lowerIngredient.contains("onion") -> "🧅"
+        lowerIngredient.contains("garlic") -> "🧄"
+        lowerIngredient.contains("ginger") -> "🫚"
+        lowerIngredient.contains("pepper") || lowerIngredient.contains("chili") -> "🌶️"
+        lowerIngredient.contains("corn") -> "🌽"
+        lowerIngredient.contains("broccoli") -> "🥦"
+        lowerIngredient.contains("lettuce") || lowerIngredient.contains("salad") -> "🥬"
+        lowerIngredient.contains("cucumber") -> "🥒"
+        lowerIngredient.contains("potato") -> "🥔"
+        lowerIngredient.contains("mushroom") -> "🍄"
+        lowerIngredient.contains("avocado") -> "🥑"
+        lowerIngredient.contains("eggplant") -> "🍆"
+        
+        // Fruits
+        lowerIngredient.contains("apple") -> "🍎"
+        lowerIngredient.contains("lemon") -> "🍋"
+        lowerIngredient.contains("orange") -> "🍊"
+        lowerIngredient.contains("banana") -> "🍌"
+        lowerIngredient.contains("strawberry") -> "🍓"
+        lowerIngredient.contains("grape") -> "🍇"
+        lowerIngredient.contains("coconut") -> "🥥"
+        
+        // Grains & Bread
+        lowerIngredient.contains("bread") -> "🍞"
+        lowerIngredient.contains("rice") -> "🍚"
+        lowerIngredient.contains("pasta") || lowerIngredient.contains("noodle") -> "🍝"
+        
+        // Condiments & Others
+        lowerIngredient.contains("salt") -> "🧂"
+        lowerIngredient.contains("honey") -> "🍯"
+        lowerIngredient.contains("oil") || lowerIngredient.contains("olive") -> "🫒"
+        lowerIngredient.contains("herb") || lowerIngredient.contains("basil") || lowerIngredient.contains("parsley") -> "🌿"
+        lowerIngredient.contains("sugar") -> "🍬"
+        lowerIngredient.contains("chocolate") || lowerIngredient.contains("cocoa") -> "🍫"
+        lowerIngredient.contains("water") -> "💧"
+        lowerIngredient.contains("wine") || lowerIngredient.contains("vinegar") -> "🍷"
+        
+        // Default
+        else -> "✨"
+    }
+}
+
 @Composable
 private fun IngredientItem(
     ingredient: String,
-    isAvailable: Boolean,
-    onAddToShoppingList: () -> Unit,
+    onAddToCart: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val ingredientEmoji = getIngredientEmoji(ingredient)
+    val AccentBlue = Color(0xFF3498DB)
+    val WarmOrange = Color(0xFFFF9500)
+    
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = if (isAvailable) {
-            PrimaryGreen.copy(alpha = 0.08f)
-        } else {
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-        }
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
+                .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                // Status icon
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (isAvailable) {
-                        PrimaryGreen.copy(alpha = 0.15f)
-                    } else {
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
-                    }
+                // Ingredient emoji with gradient background
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                                colors = listOf(
+                                    PrimaryGreen.copy(alpha = 0.15f),
+                                    WarmOrange.copy(alpha = 0.1f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(14.dp)
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (isAvailable) "✓" else "✕",
-                        fontSize = 14.sp,
-                        color = if (isAvailable) PrimaryGreen else MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(6.dp)
+                        text = ingredientEmoji,
+                        fontSize = 22.sp
                     )
                 }
                 
                 // Ingredient name
-                Text(
-                    text = ingredient,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = ingredient,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Tap cart to add to list",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
             }
             
-            // Add to shopping list button (only for missing ingredients)
-            if (!isAvailable) {
-                TextButton(
-                    onClick = onAddToShoppingList,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = PrimaryGreen
-                    ),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            // Add to cart button with gradient
+            Surface(
+                onClick = onAddToCart,
+                shape = RoundedCornerShape(12.dp),
+                color = Color.Transparent,
+                modifier = Modifier.size(44.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                                colors = listOf(
+                                    AccentBlue.copy(alpha = 0.15f),
+                                    AccentBlue.copy(alpha = 0.25f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "+",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "List",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 12.sp
-                        )
-                    }
+                    Text(
+                        text = "🛒",
+                        fontSize = 20.sp
+                    )
                 }
             }
         }

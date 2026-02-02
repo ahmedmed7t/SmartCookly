@@ -46,6 +46,7 @@ fun AppNavigation(
     onNavigateToAddIngredient: () -> Unit = {},
     onNavigateToEditIngredient: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
     onNavigateToDiscoverRecipes: () -> Unit = {},
+    onNavigateToFavorites: () -> Unit = {},
     fridgeRefreshKey: Int = 0,
     onFridgeRefresh: () -> Unit = {}
 ) {
@@ -127,6 +128,9 @@ fun AppNavigation(
                     },
                     onProfileClick = {
                         onNavigateToProfile()
+                    },
+                    onFavoritesClick = {
+                        onNavigateToFavorites()
                     }
                 )
             }

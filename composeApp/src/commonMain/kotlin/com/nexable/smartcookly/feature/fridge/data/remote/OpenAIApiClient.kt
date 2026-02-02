@@ -481,8 +481,12 @@ class OpenAIApiClient(
                     
                     println("OpenAIApiClient: Parsed recipe $index: $name")
                     
+                    // Generate unique ID using timestamp and index
+                    val timestamp = Clock.System.now().epochSeconds * 1000 // Convert to milliseconds
+                    val uniqueId = "recipe_${timestamp}_$index"
+                    
                     Recipe(
-                        id = "recipe_$index",
+                        id = uniqueId,
                         name = name,
                         cuisine = cuisine,
                         imageUrl = imageUrl,

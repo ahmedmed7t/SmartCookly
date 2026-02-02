@@ -5,6 +5,8 @@ import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.auth.presentation.login.LoginViewModel
 import com.nexable.smartcookly.feature.auth.presentation.signup.SignUpViewModel
 import com.nexable.smartcookly.feature.fridge.data.remote.OpenAIApiClient
+import com.nexable.smartcookly.feature.favorites.data.repository.FavoritesRepository
+import com.nexable.smartcookly.feature.favorites.presentation.FavoritesViewModel
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
 import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
 import com.nexable.smartcookly.feature.fridge.data.repository.ImageStorageRepository
@@ -46,6 +48,7 @@ val sharedModule = module {
     single { AuthRepository() }
     single { UserRepository() }
     single { RecipeRepository(get(), get()) }
+    single { FavoritesRepository() }
     
     // API Clients
     single { OpenAIApiClient(get(), getOpenAIApiKey()) }
@@ -63,6 +66,7 @@ val sharedModule = module {
     viewModel { ProfileViewModel(get(), get(), get()) }
     viewModel { EditPreferenceViewModel(get(), get()) }
     viewModel { RecipesViewModel(get(), get()) }
-    viewModel { DiscoverRecipesViewModel(get(), get(), get()) }
-    viewModel { CookingModeViewModel(get()) }
+    viewModel { DiscoverRecipesViewModel(get(), get(), get(), get(), get()) }
+    viewModel { CookingModeViewModel(get(), get(), get()) }
+    viewModel { FavoritesViewModel(get(), get()) }
 }

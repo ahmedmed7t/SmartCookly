@@ -20,6 +20,8 @@ sealed class Screen(val route: String) {
     data object EditCookingLevel : Screen("edit_cooking_level")
     data object AddIngredient : Screen("add_ingredient")
     data object DiscoverRecipes : Screen("discover_recipes")
+    data object Favorites : Screen("favorites")
+    data object FavoriteRecipeFlow : Screen("favorite_recipe_flow")
     
     // Sub-navigation routes for ReviewScan flow
     sealed class ReviewScanSubScreen(route: String) : Screen(route) {

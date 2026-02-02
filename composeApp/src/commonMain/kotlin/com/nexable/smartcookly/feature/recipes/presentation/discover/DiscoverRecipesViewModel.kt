@@ -3,6 +3,8 @@ package com.nexable.smartcookly.feature.recipes.presentation.discover
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexable.smartcookly.data.local.AppPreferences
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
+import com.nexable.smartcookly.feature.favorites.data.repository.FavoritesRepository
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
 import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import com.nexable.smartcookly.feature.recipes.data.repository.RecipeRepository
@@ -10,12 +12,15 @@ import com.nexable.smartcookly.feature.recipes.presentation.DiscoveryMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DiscoverRecipesViewModel(
     private val recipeRepository: RecipeRepository,
     private val appPreferences: AppPreferences,
-    private val fridgeRepository: FridgeRepository
+    private val fridgeRepository: FridgeRepository,
+    private val favoritesRepository: FavoritesRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DiscoverRecipesUiState())
     val uiState: StateFlow<DiscoverRecipesUiState> = _uiState.asStateFlow()
@@ -100,5 +105,75 @@ class DiscoverRecipesViewModel(
     fun retry() {
         // Retry will be handled by calling loadRecipes again from the screen
         _uiState.value = _uiState.value.copy(error = null)
+    }
+    
+    fun addToFavorites(recipe: Recipe) {
+        val userId = authRepository.getCurrentUser()?.uid
+        if (userId == null) {
+            _uiState.update {
+                it.copy(favoriteError = "User not authenticated")
+            }
+            return
+        }
+        
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isAddingFavorite = true,
+                    addingFavoriteRecipeId = recipe.id,
+                    favoriteError = null,
+                    favoriteAddedRecipeId = null
+                )
+            }
+            
+            try {
+                // First, fetch cooking steps
+                val stepsResult = recipeRepository.getCookingSteps(recipe.name, recipe.ingredients)
+                
+                when (stepsResult) {
+                    is com.nexable.smartcookly.netwrokUtils.Result.Success -> {
+                        // Merge cooking steps into recipe
+                        val recipeWithSteps = recipe.copy(cookingSteps = stepsResult.data)
+                        
+                        // Save to favorites
+                        favoritesRepository.addToFavorites(userId, recipeWithSteps)
+                        
+                        _uiState.update {
+                            it.copy(
+                                isAddingFavorite = false,
+                                addingFavoriteRecipeId = null,
+                                favoriteAddedRecipeId = recipe.id,
+                                favoritedRecipeIds = it.favoritedRecipeIds + recipe.id
+                            )
+                        }
+                    }
+                    is com.nexable.smartcookly.netwrokUtils.Result.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isAddingFavorite = false,
+                                addingFavoriteRecipeId = null,
+                                favoriteError = when (stepsResult.error) {
+                                    com.nexable.smartcookly.netwrokUtils.NetworkError.NO_INTERNET -> 
+                                        "No internet connection"
+                                    com.nexable.smartcookly.netwrokUtils.NetworkError.SERVER_ERROR -> 
+                                        "Server error. Please try again."
+                                    com.nexable.smartcookly.netwrokUtils.NetworkError.REQUEST_TIMEOUT ->
+                                        "Request timed out. Please try again."
+                                    else -> "Failed to fetch cooking steps: ${stepsResult.error}"
+                                }
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isAddingFavorite = false,
+                        addingFavoriteRecipeId = null,
+                        favoriteError = "Failed to add recipe to favorites: ${e.message}"
+                    )
+                }
+            }
+        }
     }
 }

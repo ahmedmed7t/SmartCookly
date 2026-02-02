@@ -14,7 +14,11 @@ data class CookingModeUiState(
     val timerRunning: Boolean = false,
     val timerFinished: Boolean = false,
     // Completion state
-    val isCookingComplete: Boolean = false
+    val isCookingComplete: Boolean = false,
+    // Favorites state
+    val isAddingToFavorites: Boolean = false,
+    val favoriteAdded: Boolean = false,
+    val favoriteError: String? = null
 ) {
     val currentStep: CookingStep?
         get() = steps.getOrNull(currentStepIndex)

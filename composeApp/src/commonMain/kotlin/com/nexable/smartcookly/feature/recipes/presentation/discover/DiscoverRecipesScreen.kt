@@ -35,9 +35,34 @@ fun DiscoverRecipesScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     var isCompletionScreenShowing by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     
     // Load discovery parameters from cache
     val params = DiscoveryParamsCache.getParams()
+    
+    // Show snackbar when favorite is added
+    LaunchedEffect(uiState.favoriteAddedRecipeId) {
+        uiState.favoriteAddedRecipeId?.let { recipeId ->
+            // Check if we're currently viewing this recipe
+            val currentRecipeId = navBackStackEntry?.arguments?.getString("recipeId")
+            if (currentRecipeId == recipeId || uiState.recipes.any { it.id == recipeId }) {
+                snackbarHostState.showSnackbar(
+                    message = "Recipe Added to Favorites",
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
+    
+    // Show snackbar when there's an error adding to favorites
+    LaunchedEffect(uiState.favoriteError) {
+        uiState.favoriteError?.let { error ->
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Long
+            )
+        }
+    }
     
     LaunchedEffect(params) {
         if (params != null) {
@@ -104,6 +129,9 @@ fun DiscoverRecipesScreen(
                 )
             }
         },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         NavHost(
@@ -146,6 +174,11 @@ fun DiscoverRecipesScreen(
                             Screen.DiscoverRecipesSubScreen.CookingMode.createRoute(recipe?.id.orEmpty())
                         )
                     },
+                    isAddingFavorite = uiState.isAddingFavorite && uiState.addingFavoriteRecipeId == recipeId,
+                    isFavorited = recipeId in uiState.favoritedRecipeIds,
+                    onAddToFavorites = {
+                        recipe?.let { viewModel.addToFavorites(it) }
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -159,8 +192,7 @@ fun DiscoverRecipesScreen(
                 
                 if (recipe != null) {
                     CookingModeScreen(
-                        recipeName = recipe.name,
-                        ingredients = recipe.ingredients,
+                        recipe = recipe,
                         onNavigateBack = {
                             navController.popBackStack()
                         },

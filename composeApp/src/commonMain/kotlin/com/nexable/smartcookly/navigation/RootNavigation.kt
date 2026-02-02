@@ -18,8 +18,27 @@ import com.nexable.smartcookly.feature.onboarding.presentation.LoginEncouragemen
 import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingScreen
 import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
+import com.nexable.smartcookly.feature.favorites.presentation.FavoritesScreen
 import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientScreen
 import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesScreen
+import com.nexable.smartcookly.feature.recipes.presentation.discover.RecipeDetailsScreen
+import com.nexable.smartcookly.feature.recipes.presentation.cooking.CookingModeScreen
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import org.jetbrains.compose.resources.painterResource
+import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_back
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -154,9 +173,41 @@ fun RootNavigation() {
                     onNavigateToDiscoverRecipes = {
                         navController.navigate(Screen.DiscoverRecipes.route)
                     },
+                    onNavigateToFavorites = {
+                        navController.navigate(Screen.Favorites.route)
+                    },
                     fridgeRefreshKey = fridgeRefreshKey,
                     onFridgeRefresh = {
                         fridgeRefreshKey++
+                    }
+                )
+            }
+            
+            composable(Screen.Favorites.route) {
+                FavoritesScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onViewRecipe = { recipe ->
+                        FavoriteRecipeCache.storeRecipe(recipe)
+                        navController.navigate(Screen.FavoriteRecipeFlow.route)
+                    }
+                )
+            }
+            
+            composable(Screen.FavoriteRecipeFlow.route) {
+                FavoriteRecipeFlowScreen(
+                    onNavigateBack = {
+                        FavoriteRecipeCache.clearRecipe()
+                        navController.popBackStack()
+                    },
+                    onNavigateToHome = {
+                        FavoriteRecipeCache.clearRecipe()
+                        navController.navigate(Screen.App.route) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
                     }
                 )
             }
@@ -296,6 +347,129 @@ fun RootNavigation() {
                             }
                         }
                     }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FavoriteRecipeFlowScreen(
+    onNavigateBack: () -> Unit,
+    onNavigateToHome: () -> Unit
+) {
+    val navController = rememberNavController()
+    val recipe = FavoriteRecipeCache.getRecipe()
+    var isCompletionScreenShowing by remember { mutableStateOf(false) }
+    
+    // Determine toolbar title based on current route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val toolbarTitle = when {
+        currentRoute?.startsWith("cooking_mode") == true -> {
+            recipe?.let { "Cooking: ${it.name}" } ?: "Cooking"
+        }
+        currentRoute?.startsWith("recipe_details") == true -> {
+            recipe?.name ?: "Recipe Details"
+        }
+        else -> "Recipe"
+    }
+    
+    Scaffold(
+        topBar = {
+            // Hide toolbar when completion screen is showing
+            if (!isCompletionScreenShowing) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = toolbarTitle,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                // Check if we can pop back in the NavController
+                                if (navController.previousBackStackEntry != null) {
+                                    navController.popBackStack()
+                                } else {
+                                    // We're at the root, navigate back
+                                    onNavigateBack()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                painter = painterResource(Res.drawable.ic_back),
+                                contentDescription = "Back"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        if (recipe == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text(
+                    text = "Recipe not found",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            return@Scaffold
+        }
+        
+        NavHost(
+            navController = navController,
+            startDestination = Screen.DiscoverRecipesSubScreen.RecipeDetails.createRoute(recipe.id),
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable(
+                route = Screen.DiscoverRecipesSubScreen.RecipeDetails.route,
+                arguments = listOf(navArgument("recipeId") { type = NavType.StringType })
+            ) { _ ->
+                RecipeDetailsScreen(
+                    recipe = recipe,
+                    onStartCooking = {
+                        navController.navigate(
+                            Screen.DiscoverRecipesSubScreen.CookingMode.createRoute(recipe.id)
+                        )
+                    },
+                    showFavoriteButton = false, // Hide favorite button for favorites flow
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            
+            composable(
+                route = Screen.DiscoverRecipesSubScreen.CookingMode.route,
+                arguments = listOf(navArgument("recipeId") { type = NavType.StringType })
+            ) { _ ->
+                CookingModeScreen(
+                    recipe = recipe,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToHome = onNavigateToHome,
+                    onCompletionScreenVisibilityChanged = { isShowing ->
+                        isCompletionScreenShowing = isShowing
+                    },
+                    showAddToFavorites = false // Hide add to favorites button for favorites flow
                 )
             }
         }

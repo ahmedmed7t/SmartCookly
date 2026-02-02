@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.drawscope.rotate
+import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import com.nexable.smartcookly.platform.BackHandler
 import org.koin.compose.koinInject
 import kotlinx.coroutines.delay
@@ -41,76 +42,113 @@ private val loadingTips = listOf(
 
 @Composable
 fun CookingModeScreen(
-    recipeName: String,
-    ingredients: List<String>,
+    recipe: Recipe,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit,
     onCompletionScreenVisibilityChanged: (Boolean) -> Unit = {},
+    showAddToFavorites: Boolean = true,
     viewModel: CookingModeViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
-    // Load cooking steps when recipe changes (cached if already loaded)
-    LaunchedEffect(recipeName, ingredients) {
-        viewModel.loadCookingSteps(recipeName, ingredients)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Load cooking steps when recipe changes (uses pre-loaded steps if available, e.g., from favorites)
+    LaunchedEffect(recipe.name, recipe.ingredients) {
+        viewModel.loadCookingSteps(
+            recipeName = recipe.name, 
+            ingredients = recipe.ingredients,
+            preLoadedSteps = recipe.cookingSteps
+        )
     }
-    
+
     // Notify parent about completion screen visibility
     LaunchedEffect(uiState.isCookingComplete) {
         onCompletionScreenVisibilityChanged(uiState.isCookingComplete)
     }
-    
+
+    // Show snackbar when favorite is added
+    LaunchedEffect(uiState.favoriteAdded) {
+        if (uiState.favoriteAdded) {
+            snackbarHostState.showSnackbar(
+                message = "Recipe Added to Favorites",
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
+    // Show snackbar when there's an error adding to favorites
+    LaunchedEffect(uiState.favoriteError) {
+        uiState.favoriteError?.let { error ->
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Long
+            )
+        }
+    }
+
     // Handle system back button - navigate to home if cooking is complete
     BackHandler(enabled = uiState.isCookingComplete) {
         onNavigateToHome()
     }
-    
-    // Show completion screen if cooking is finished
-    if (uiState.isCookingComplete) {
-        CookingCompleteScreen(
-            recipeName = recipeName,
-            onNavigateToHome = onNavigateToHome,
-            onAddToFavorites = {
-                // TODO: Implement add to favorites functionality
-            }
-        )
-        return
-    }
-    
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        when {
-            uiState.isLoading -> {
-                CookingLoadingState()
-            }
-            uiState.error != null -> {
-                ErrorState(
-                    error = uiState.error!!,
-                    onRetry = {
-                        viewModel.loadCookingSteps(recipeName, ingredients)
-                    }
-                )
-            }
-            uiState.steps.isEmpty() -> {
-                EmptyState(onNavigateBack = onNavigateBack)
-            }
-            else -> {
-                CookingContent(
-                    uiState = uiState,
-                    onNextStep = {
-                        if (uiState.isLastStep) {
-                            viewModel.finishCooking()
-                        } else {
-                            viewModel.nextStep()
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { _ ->
+        // Show completion screen if cooking is finished
+        if (uiState.isCookingComplete) {
+            CookingCompleteScreen(
+                recipe = recipe,
+                isAddingToFavorites = uiState.isAddingToFavorites,
+                favoriteAdded = uiState.favoriteAdded,
+                onNavigateToHome = onNavigateToHome,
+                onAddToFavorites = {
+                    viewModel.addToFavorites(recipe)
+                },
+                showAddToFavorites = showAddToFavorites
+            )
+            return@Scaffold
+        }
+        
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            when {
+                uiState.isLoading -> {
+                    CookingLoadingState()
+                }
+
+                uiState.error != null -> {
+                    ErrorState(
+                        error = uiState.error!!,
+                        onRetry = {
+                            viewModel.loadCookingSteps(recipe.name, recipe.ingredients)
                         }
-                    },
-                    onPreviousStep = { viewModel.previousStep() },
-                    onStartTimer = { minutes -> viewModel.startTimer(minutes) },
-                    onPauseTimer = { viewModel.pauseTimer() },
-                    onResumeTimer = { viewModel.resumeTimer() },
-                    onResetTimer = { viewModel.resetTimer() }
-                )
+                    )
+                }
+
+                uiState.steps.isEmpty() -> {
+                    EmptyState(onNavigateBack = onNavigateBack)
+                }
+
+                else -> {
+                    CookingContent(
+                        uiState = uiState,
+                        onNextStep = {
+                            if (uiState.isLastStep) {
+                                viewModel.finishCooking()
+                            } else {
+                                viewModel.nextStep()
+                            }
+                        },
+                        onPreviousStep = { viewModel.previousStep() },
+                        onStartTimer = { minutes -> viewModel.startTimer(minutes) },
+                        onPauseTimer = { viewModel.pauseTimer() },
+                        onResumeTimer = { viewModel.resumeTimer() },
+                        onResetTimer = { viewModel.resetTimer() }
+                    )
+                }
             }
         }
     }
@@ -295,7 +333,7 @@ private fun CookingContent(
             }
             
             // Timer Card
-            if (currentStep.timeMinutes > 0) {
+            if (currentStep.timeMinutes in 1..59) {
                 TimerCard(
                     timeMinutes = currentStep.timeMinutes,
                     timerSeconds = uiState.timerSeconds,
@@ -918,10 +956,13 @@ private fun NavigationButtonsRow(
 }
 
 @Composable
-private fun CookingCompleteScreen(
-    recipeName: String,
+fun CookingCompleteScreen(
+    recipe: Recipe,
+    isAddingToFavorites: Boolean,
+    favoriteAdded: Boolean,
     onNavigateToHome: () -> Unit,
-    onAddToFavorites: () -> Unit
+    onAddToFavorites: () -> Unit,
+    showAddToFavorites: Boolean = true
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "celebration")
     
@@ -1211,16 +1252,16 @@ private fun CookingCompleteScreen(
                     )
                     
                     // Recipe Name
-                    Text(
-                        text = recipeName,
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 32.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
+            Text(
+                text = recipe.name,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 32.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
                     
                     // Achievement Row
                     Row(
@@ -1273,42 +1314,53 @@ private fun CookingCompleteScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-            // Add to Favorites Button
-            OutlinedButton(
-                onClick = onAddToFavorites,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                shape = RoundedCornerShape(20.dp),
-                border = androidx.compose.foundation.BorderStroke(
-                    width = 2.dp,
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            PrimaryGreen.copy(alpha = 0.6f),
-                            celebrationGold.copy(alpha = 0.6f)
+            // Add to Favorites Button - only show if showAddToFavorites is true
+            if (showAddToFavorites) {
+                OutlinedButton(
+                    onClick = onAddToFavorites,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    enabled = !isAddingToFavorites && !favoriteAdded,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (favoriteAdded) PrimaryGreen else MaterialTheme.colorScheme.onSurface
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = 2.dp,
+                        brush = Brush.horizontalGradient(
+                            colors = if (favoriteAdded) {
+                                listOf(PrimaryGreen, PrimaryGreen)
+                            } else {
+                                listOf(
+                                    PrimaryGreen.copy(alpha = 0.6f),
+                                    celebrationGold.copy(alpha = 0.6f)
+                                )
+                            }
                         )
                     )
-                )
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("❤️", fontSize = 22.sp)
-                    Text(
-                        text = "Save to Favorites",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = 16.sp
-                        ),
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("❤️", fontSize = 22.sp)
+                        Text(
+                            text = when {
+                                favoriteAdded -> "Added to Favorites"
+                                isAddingToFavorites -> "Adding..."
+                                else -> "Save to Favorites"
+                            },
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 16.sp
+                            ),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
+                
+                Spacer(modifier = Modifier.height(12.dp))
             }
-            
-            Spacer(modifier = Modifier.height(12.dp))
             
             // Back to Home Button with gradient-like effect
             Button(
