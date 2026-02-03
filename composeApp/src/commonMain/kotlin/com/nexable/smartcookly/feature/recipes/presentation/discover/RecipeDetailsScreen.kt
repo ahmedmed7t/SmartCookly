@@ -49,6 +49,13 @@ fun RecipeDetailsScreen(
         }
     }
     
+    // Clear error when dialog is dismissed
+    LaunchedEffect(showShoppingDialog) {
+        if (!showShoppingDialog && shoppingUiState.error != null) {
+            // Error will be cleared on next add attempt
+        }
+    }
+    
     if (recipe == null) {
         Box(
             modifier = modifier.fillMaxSize(),
@@ -296,8 +303,12 @@ fun RecipeDetailsScreen(
                 onAdd = { name, urgency ->
                     shoppingViewModel.addItem(name, urgency)
                 },
-                onDismiss = { showShoppingDialog = false },
-                isAdding = shoppingUiState.isAdding
+                onDismiss = { 
+                    showShoppingDialog = false
+                    shoppingViewModel.clearError()
+                },
+                isAdding = shoppingUiState.isAdding,
+                error = shoppingUiState.error
             )
         }
     }

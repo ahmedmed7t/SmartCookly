@@ -26,10 +26,16 @@ fun AddToShoppingDialog(
     initialIngredientName: String = "",
     onAdd: (String, Urgency) -> Unit,
     onDismiss: () -> Unit,
-    isAdding: Boolean = false
+    isAdding: Boolean = false,
+    error: String? = null
 ) {
     var ingredientName by remember { mutableStateOf(initialIngredientName) }
     var selectedUrgency by remember { mutableStateOf(Urgency.NORMAL) }
+    
+    // Reset ingredient name when initial value changes
+    LaunchedEffect(initialIngredientName) {
+        ingredientName = initialIngredientName
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -78,7 +84,13 @@ fun AddToShoppingDialog(
                 // Ingredient Name Text Field
                 OutlinedTextField(
                     value = ingredientName,
-                    onValueChange = { ingredientName = it },
+                    onValueChange = { 
+                        ingredientName = it
+                        // Clear error when user starts typing
+                        if (error != null) {
+                            // Error will be cleared by ViewModel on next add attempt
+                        }
+                    },
                     label = {
                         Text(
                             text = "Ingredient Name",
@@ -96,10 +108,16 @@ fun AddToShoppingDialog(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = PrimaryGreen,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        focusedLabelColor = PrimaryGreen
+                        focusedLabelColor = PrimaryGreen,
+                        errorBorderColor = UrgentRed,
+                        errorLabelColor = UrgentRed
                     ),
                     enabled = !isAdding,
-                    singleLine = true
+                    singleLine = true,
+                    isError = error != null,
+                    supportingText = if (error != null) {
+                        { Text(text = error, color = UrgentRed) }
+                    } else null
                 )
 
                 // Urgency Selector

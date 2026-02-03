@@ -77,6 +77,31 @@ class ShoppingRepository {
         }
     }
 
+    suspend fun itemExists(userId: String, itemName: String): Boolean {
+        return try {
+            println("ShoppingRepository: Checking if item '$itemName' exists for userId: $userId")
+            val snapshot = firestore.collection(usersCollection)
+                .document(userId)
+                .collection(shoppingListSubcollection)
+                .get()
+
+            val exists = snapshot.documents.any { doc ->
+                try {
+                    val firestoreItem = doc.data<FirestoreShoppingItem>()
+                    firestoreItem.name.equals(itemName, ignoreCase = true)
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            println("ShoppingRepository: Item '$itemName' exists: $exists")
+            exists
+        } catch (e: Exception) {
+            println("ShoppingRepository: Error checking if item exists - ${e.message}")
+            e.printStackTrace()
+            false
+        }
+    }
+
     suspend fun deleteItem(userId: String, itemId: String) {
         try {
             println("ShoppingRepository: Deleting item $itemId from shopping list for userId: $userId")

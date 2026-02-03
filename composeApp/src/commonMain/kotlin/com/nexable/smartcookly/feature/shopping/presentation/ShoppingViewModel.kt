@@ -71,14 +71,37 @@ class ShoppingViewModel(
             _uiState.update { it.copy(isAdding = true, error = null) }
             
             try {
+                val trimmedName = name.trim()
+                if (trimmedName.isBlank()) {
+                    _uiState.update {
+                        it.copy(
+                            isAdding = false,
+                            error = "Ingredient name cannot be empty"
+                        )
+                    }
+                    return@launch
+                }
+                
+                // Check if item with same name already exists (case-insensitive)
+                val itemExists = shoppingRepository.itemExists(userId, trimmedName)
+                if (itemExists) {
+                    _uiState.update {
+                        it.copy(
+                            isAdding = false,
+                            error = "\"$trimmedName\" is already in your shopping list"
+                        )
+                    }
+                    return@launch
+                }
+                
                 val item = ShoppingItem(
-                    name = name,
+                    name = trimmedName,
                     urgency = urgency,
                     addedAt = System.currentTimeMillis()
                 )
                 shoppingRepository.addItem(userId, item)
                 // Reset adding state after successful add
-                _uiState.update { it.copy(isAdding = false) }
+                _uiState.update { it.copy(isAdding = false, error = null) }
                 // Reload items after adding
                 loadItems()
             } catch (e: Exception) {
@@ -90,6 +113,10 @@ class ShoppingViewModel(
                 }
             }
         }
+    }
+    
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
     
     fun deleteItem(itemId: String) {
