@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,7 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.nexable.smartcookly.feature.recipes.data.model.Recipe
+import com.nexable.smartcookly.feature.shopping.presentation.AddToShoppingDialog
+import com.nexable.smartcookly.feature.shopping.presentation.ShoppingViewModel
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_heart
 
@@ -31,8 +34,21 @@ fun RecipeDetailsScreen(
     isFavorited: Boolean = false,
     onAddToFavorites: () -> Unit = {},
     showFavoriteButton: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shoppingViewModel: ShoppingViewModel = koinInject()
 ) {
+    var showShoppingDialog by remember { mutableStateOf(false) }
+    var selectedIngredient by remember { mutableStateOf("") }
+    val shoppingUiState by shoppingViewModel.uiState.collectAsState()
+    
+    // Close dialog when item is successfully added
+    LaunchedEffect(shoppingUiState.isAdding) {
+        if (!shoppingUiState.isAdding && shoppingUiState.error == null && showShoppingDialog) {
+            // Item was successfully added, close dialog
+            showShoppingDialog = false
+        }
+    }
+    
     if (recipe == null) {
         Box(
             modifier = modifier.fillMaxSize(),
@@ -264,10 +280,25 @@ fun RecipeDetailsScreen(
                 recipe.ingredients.forEach { ingredient ->
                     IngredientItem(
                         ingredient = ingredient,
-                        onAddToCart = { /* TODO: Add to shopping cart */ }
+                        onAddToCart = {
+                            selectedIngredient = ingredient
+                            showShoppingDialog = true
+                        }
                     )
                 }
             }
+        }
+        
+        // Add to Shopping Dialog
+        if (showShoppingDialog) {
+            AddToShoppingDialog(
+                initialIngredientName = selectedIngredient,
+                onAdd = { name, urgency ->
+                    shoppingViewModel.addItem(name, urgency)
+                },
+                onDismiss = { showShoppingDialog = false },
+                isAdding = shoppingUiState.isAdding
+            )
         }
     }
 }

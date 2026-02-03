@@ -178,8 +178,7 @@ fun AppNavigation(
             }
             
             composable(Screen.Shopping.route) {
-                // Placeholder for Shopping List screen
-                Text("Shopping List Screen - Coming Soon")
+                com.nexable.smartcookly.feature.shopping.presentation.ShoppingScreen()
             }
 
 
