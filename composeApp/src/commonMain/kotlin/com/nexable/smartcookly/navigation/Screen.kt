@@ -19,6 +19,7 @@ sealed class Screen(val route: String) {
     data object EditHealth : Screen("edit_health")
     data object EditCookingLevel : Screen("edit_cooking_level")
     data object AddIngredient : Screen("add_ingredient")
+    data object AddShoppingItem : Screen("add_shopping_item")
     data object DiscoverRecipes : Screen("discover_recipes")
     data object Favorites : Screen("favorites")
     data object FavoriteRecipeFlow : Screen("favorite_recipe_flow")

@@ -35,28 +35,37 @@ fun AddIngredientScreen(
     // Determine if we're in modify mode (working with ReviewScanViewModel)
     val isModifyMode = reviewScanViewModel != null && editItem != null
     
-    // Show success snackbar when save succeeds
-    LaunchedEffect(uiState.isSaveSuccess) {
-        if (uiState.isSaveSuccess) {
-            if (isModifyMode) {
-                // In modify mode, navigate back after showing message
-                val message = "Ingredient updated successfully"
-                snackbarHostState.showSnackbar(message)
-                viewModel.clearSuccessFlag()
-                onNavigateBack()
-            } else if (uiState.isEditMode) {
-                // In edit mode, navigate back after update
-                val message = "Ingredient updated successfully"
-                snackbarHostState.showSnackbar(message)
-                viewModel.clearSuccessFlag()
-                onNavigateBack()
-            } else {
-                // In add mode, just show message and stay on screen
-                val message = "Ingredient added successfully"
-                snackbarHostState.showSnackbar(message)
-                viewModel.clearSuccessFlag()
-                // Don't navigate back - allow adding multiple ingredients
+    // Track if we should navigate back after showing snackbar
+    var shouldNavigateBack by remember { mutableStateOf(false) }
+    var navigateBackMessage by remember { mutableStateOf<String?>(null) }
+    
+    // Handle success events from SharedFlow
+    LaunchedEffect(Unit) {
+        viewModel.saveSuccessEvent.collect { event ->
+            when (event) {
+                is SaveSuccessEvent.Added -> {
+                    // In add mode, just show message and stay on screen
+                    snackbarHostState.showSnackbar("Ingredient added successfully")
+                    // Form is already cleared by ViewModel, stay on screen to allow adding more ingredients
+                }
+                is SaveSuccessEvent.Updated -> {
+                    // In edit mode, navigate back after update
+                    snackbarHostState.showSnackbar("Ingredient updated successfully")
+                    kotlinx.coroutines.delay(200) // Wait for snackbar to show
+                    onNavigateBack()
+                }
             }
+        }
+    }
+    
+    // Handle navigation back for modify mode after showing snackbar
+    LaunchedEffect(shouldNavigateBack, navigateBackMessage) {
+        if (shouldNavigateBack && navigateBackMessage != null) {
+            snackbarHostState.showSnackbar(navigateBackMessage!!)
+            kotlinx.coroutines.delay(200) // Wait for snackbar to show
+            onNavigateBack()
+            shouldNavigateBack = false
+            navigateBackMessage = null
         }
     }
 
@@ -119,9 +128,11 @@ fun AddIngredientScreen(
                         imageUrl = editItem.imageUrl
                     )
                     reviewScanViewModel.updateItem(updatedItem)
-                    onNavigateBack()
+                    // Show success message and navigate back
+                    shouldNavigateBack = true
+                    navigateBackMessage = "Ingredient updated successfully"
                 } else {
-                    // Normal mode: save to Firestore
+                    // Normal mode: save to Firestore (handles both add and edit modes)
                     viewModel.saveIngredient()
                 }
             },

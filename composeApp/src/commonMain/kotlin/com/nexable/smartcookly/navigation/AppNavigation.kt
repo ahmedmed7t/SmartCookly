@@ -28,6 +28,7 @@ import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanScre
 import com.nexable.smartcookly.feature.home.presentation.HomeScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
 import com.nexable.smartcookly.feature.recipes.presentation.RecipesScreen
+import com.nexable.smartcookly.feature.shopping.presentation.ShoppingScreen
 import com.nexable.smartcookly.platform.CameraLauncher
 import com.nexable.smartcookly.platform.getActivityContext
 import org.jetbrains.compose.resources.DrawableResource
@@ -47,6 +48,7 @@ fun AppNavigation(
     onNavigateToEditIngredient: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
     onNavigateToDiscoverRecipes: () -> Unit = {},
     onNavigateToFavorites: () -> Unit = {},
+    onNavigateToAddShoppingItem: () -> Unit = {},
     fridgeRefreshKey: Int = 0,
     onFridgeRefresh: () -> Unit = {}
 ) {
@@ -131,6 +133,12 @@ fun AppNavigation(
                     },
                     onFavoritesClick = {
                         onNavigateToFavorites()
+                    },
+                    onNavigateToFridge = {
+                        navController.navigate(Screen.Fridge.route)
+                    },
+                    onNavigateToShopping = {
+                        navController.navigate(Screen.Shopping.route)
                     }
                 )
             }
@@ -178,7 +186,9 @@ fun AppNavigation(
             }
             
             composable(Screen.Shopping.route) {
-                com.nexable.smartcookly.feature.shopping.presentation.ShoppingScreen()
+                ShoppingScreen(
+                    onNavigateToAddItem = onNavigateToAddShoppingItem
+                )
             }
 
 

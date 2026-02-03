@@ -12,10 +12,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import org.jetbrains.compose.resources.painterResource
+import smartcookly.composeapp.generated.resources.Res
+import smartcookly.composeapp.generated.resources.ic_add
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -118,6 +122,7 @@ private fun formatTimeAgo(timestamp: Long): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingScreen(
+    onNavigateToAddItem: () -> Unit = {},
     viewModel: ShoppingViewModel = koinInject()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -204,6 +209,21 @@ fun ShoppingScreen(
                         onTabSelected = { selectedTabIndex = it }
                     )
                 }
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToAddItem,
+                containerColor = PrimaryGreen,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.size(64.dp)
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_add),
+                    contentDescription = "Add Item",
+                    modifier = Modifier.size(28.dp)
+                )
             }
         },
         containerColor = MaterialTheme.colorScheme.background

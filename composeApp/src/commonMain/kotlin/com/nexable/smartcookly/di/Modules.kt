@@ -9,7 +9,9 @@ import com.nexable.smartcookly.feature.favorites.data.repository.FavoritesReposi
 import com.nexable.smartcookly.feature.favorites.presentation.FavoritesViewModel
 import com.nexable.smartcookly.feature.shopping.data.repository.ShoppingRepository
 import com.nexable.smartcookly.feature.shopping.presentation.ShoppingViewModel
+import com.nexable.smartcookly.feature.shopping.presentation.add.AddShoppingItemViewModel
 import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
+import com.nexable.smartcookly.feature.home.presentation.HomeViewModel
 import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
 import com.nexable.smartcookly.feature.fridge.data.repository.ImageStorageRepository
 import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientViewModel
@@ -73,4 +75,6 @@ val sharedModule = module {
     viewModel { CookingModeViewModel(get(), get(), get()) }
     viewModel { FavoritesViewModel(get(), get()) }
     viewModel { ShoppingViewModel(get(), get()) }
+    viewModel { AddShoppingItemViewModel(get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
 }

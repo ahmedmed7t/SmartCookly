@@ -5,16 +5,21 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,22 +41,32 @@ fun HomeScreen(
     onStartCookingClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onFavoritesClick: () -> Unit = {},
+    onNavigateToFridge: () -> Unit = {},
+    onNavigateToShopping: () -> Unit = {},
     modifier: Modifier = Modifier,
-    authRepository: AuthRepository = koinInject()
+    authRepository: AuthRepository = koinInject(),
+    viewModel: HomeViewModel = koinInject()
 ) {
     val greeting = getGreeting()
     val currentUser = authRepository.getCurrentUser()
     val displayName = currentUser?.displayName?.takeIf { it.isNotBlank() }
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
+        val layoutDirection = LocalLayoutDirection.current
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(
+                    start = paddingValues.calculateStartPadding(layoutDirection),
+                    end = paddingValues.calculateEndPadding(layoutDirection),
+                    top = paddingValues.calculateTopPadding()
+                )
                 .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
         ) {
             // Header Section
             HomeHeader(
@@ -67,8 +82,31 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // Rest of the home content can be added here
-            Spacer(modifier = Modifier.weight(1f))
+            // Expiring Soon Section - only show if there are items
+            if (uiState.expiringItems.isNotEmpty()) {
+                ExpiringSoonSection(
+                    items = uiState.expiringItems,
+                    onNavigateToFridge = onNavigateToFridge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            // Urgent Shopping Section - only show if there are items
+            if (uiState.urgentShoppingItems.isNotEmpty()) {
+                UrgentShoppingSection(
+                    items = uiState.urgentShoppingItems,
+                    onNavigateToShopping = onNavigateToShopping,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            // Cooking Tips Carousel
+            CookingTipsCarousel(
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            // Bottom spacing
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

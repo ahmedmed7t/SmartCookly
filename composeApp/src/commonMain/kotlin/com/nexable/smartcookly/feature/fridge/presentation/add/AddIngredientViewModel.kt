@@ -6,8 +6,11 @@ import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.fridge.data.model.FoodCategory
 import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import com.nexable.smartcookly.feature.fridge.data.repository.IngredientRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -18,6 +21,12 @@ class AddIngredientViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AddIngredientUiState())
     val uiState: StateFlow<AddIngredientUiState> = _uiState.asStateFlow()
+    
+    private val _saveSuccessEvent = MutableSharedFlow<SaveSuccessEvent>(
+        replay = 0,
+        extraBufferCapacity = 1
+    )
+    val saveSuccessEvent: SharedFlow<SaveSuccessEvent> = _saveSuccessEvent.asSharedFlow()
     
     fun updateName(name: String) {
         _uiState.value = _uiState.value.copy(
@@ -42,10 +51,6 @@ class AddIngredientViewModel(
     
     fun clearForm() {
         _uiState.value = AddIngredientUiState()
-    }
-    
-    fun clearSuccessFlag() {
-        _uiState.value = _uiState.value.copy(isSaveSuccess = false)
     }
     
     fun loadItem(item: FridgeItem) {
@@ -104,16 +109,28 @@ class AddIngredientViewModel(
                     )
                 }
                 
-                if (state.isEditMode) {
+                val wasEditMode = state.isEditMode
+                val editingItemId = state.editingItemId
+                
+                if (wasEditMode) {
                     ingredientRepository.updateIngredient(userId, fridgeItem)
                 } else {
                     ingredientRepository.addIngredient(userId, fridgeItem)
                 }
                 
-                // Clear form and set success flag
-                _uiState.value = AddIngredientUiState(
-                    isSaveSuccess = true
-                )
+                // Emit success event
+                if (wasEditMode && editingItemId != null) {
+                    // In edit mode, emit update event with editingItemId
+                    _saveSuccessEvent.emit(SaveSuccessEvent.Updated(editingItemId))
+                    // Clear form fields but preserve edit mode flag for navigation check
+                    _uiState.value = AddIngredientUiState(
+                        editingItemId = editingItemId
+                    )
+                } else {
+                    // In add mode, emit add event and clear form completely
+                    _saveSuccessEvent.emit(SaveSuccessEvent.Added)
+                    _uiState.value = AddIngredientUiState()
+                }
             } catch (e: Exception) {
                 _uiState.value = state.copy(
                     isLoading = false,

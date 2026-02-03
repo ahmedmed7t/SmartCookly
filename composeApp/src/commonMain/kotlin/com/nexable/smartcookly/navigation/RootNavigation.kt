@@ -20,6 +20,7 @@ import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
 import com.nexable.smartcookly.feature.favorites.presentation.FavoritesScreen
 import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientScreen
+import com.nexable.smartcookly.feature.shopping.presentation.add.AddShoppingItemScreen
 import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesScreen
 import com.nexable.smartcookly.feature.recipes.presentation.discover.RecipeDetailsScreen
 import com.nexable.smartcookly.feature.recipes.presentation.cooking.CookingModeScreen
@@ -176,6 +177,9 @@ fun RootNavigation() {
                     onNavigateToFavorites = {
                         navController.navigate(Screen.Favorites.route)
                     },
+                    onNavigateToAddShoppingItem = {
+                        navController.navigate(Screen.AddShoppingItem.route)
+                    },
                     fridgeRefreshKey = fridgeRefreshKey,
                     onFridgeRefresh = {
                         fridgeRefreshKey++
@@ -330,6 +334,14 @@ fun RootNavigation() {
                         navController.popBackStack()
                     },
                     editItem = editItem
+                )
+            }
+            
+            composable(Screen.AddShoppingItem.route) {
+                AddShoppingItemScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
             
