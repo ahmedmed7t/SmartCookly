@@ -6,6 +6,7 @@ import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.favorites.data.repository.FavoritesRepository
 import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import com.nexable.smartcookly.feature.recipes.data.repository.RecipeRepository
+import com.nexable.smartcookly.navigation.QuickMealsCache
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,16 +35,44 @@ class CookingModeViewModel(
     fun loadCookingSteps(
         recipeName: String, 
         ingredients: List<String>,
-        preLoadedSteps: List<com.nexable.smartcookly.feature.recipes.data.model.CookingStep> = emptyList()
+        preLoadedSteps: List<com.nexable.smartcookly.feature.recipes.data.model.CookingStep> = emptyList(),
+        recipeId: String? = null
     ) {
         // Create a cache key from recipe name and ingredients
         val recipeKey = "$recipeName|${ingredients.joinToString(",")}"
+        
+        // Check QuickMealsCache first if recipeId is provided
+        if (recipeId != null) {
+            val quickMealsCachedSteps = QuickMealsCache.getCookingSteps(recipeId)
+            if (quickMealsCachedSteps != null && quickMealsCachedSteps.isNotEmpty()) {
+                // Use cached steps from QuickMealsCache
+                cachedRecipeKey = recipeKey
+                cachedSteps = cachedSteps + (recipeKey to quickMealsCachedSteps)
+                
+                _uiState.update { 
+                    it.copy(
+                        recipeName = recipeName,
+                        ingredients = ingredients,
+                        steps = quickMealsCachedSteps,
+                        isLoading = false,
+                        error = null,
+                        currentStepIndex = 0
+                    )
+                }
+                return
+            }
+        }
         
         // If we have pre-loaded steps (e.g., from favorites), use them directly
         if (preLoadedSteps.isNotEmpty()) {
             // Cache them for consistency
             cachedRecipeKey = recipeKey
             cachedSteps = cachedSteps + (recipeKey to preLoadedSteps)
+            
+            // Also cache in QuickMealsCache if recipeId is provided
+            if (recipeId != null) {
+                QuickMealsCache.storeCookingSteps(recipeId, preLoadedSteps)
+            }
             
             _uiState.update { 
                 it.copy(
@@ -85,6 +114,11 @@ class CookingModeViewModel(
                     // Cache the steps
                     cachedRecipeKey = recipeKey
                     cachedSteps = cachedSteps + (recipeKey to result.data)
+                    
+                    // Also cache in QuickMealsCache if recipeId is provided
+                    if (recipeId != null) {
+                        QuickMealsCache.storeCookingSteps(recipeId, result.data)
+                    }
                     
                     _uiState.update {
                         it.copy(

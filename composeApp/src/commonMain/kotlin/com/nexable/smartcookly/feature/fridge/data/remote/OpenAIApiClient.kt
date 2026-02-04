@@ -395,9 +395,38 @@ class OpenAIApiClient(
                 "Suggest recipes using ingredients available in the fridge."
             DiscoveryMode.BOTH ->
                 "Suggest recipes that use fridge ingredients AND match preferences."
+            DiscoveryMode.QUICK_MEALS ->
+                "Suggest quick and easy recipes that can be prepared in under 15 minutes. Focus on simple recipes with common ingredients."
         }
         
-        return """
+        // Special handling for QUICK_MEALS mode - only use cuisines, ignore other preferences
+        return if (discoveryMode == DiscoveryMode.QUICK_MEALS) {
+            """
+            Suggest up to 5 quick and easy recipes. $modeDescription
+            
+            Requirements:
+            - Cooking time must be under 15 minutes
+            - Use simple, common ingredients that are easy to find
+            - Focus on recipes that are quick to prepare
+            - Keep instructions simple and straightforward
+            
+            Cuisines: $cuisineList
+            
+            IMPORTANT: Ignore fridge items, dietary restrictions, and other preferences. Only consider the preferred cuisines.
+            
+            Return ONLY a JSON array:
+            [{
+              "name":"Dish Name",
+              "cuisine":"Italian",
+              "cooking_time_minutes":12,
+              "ingredients":["item1","item2","item3"],
+              "fit_percentage":100,
+              "rating":4.5,
+              "description":"Brief description"
+            }]
+        """.trimIndent()
+        } else {
+            """
             Suggest up to 5 recipes. $modeDescription
             
             Preferences:
@@ -420,6 +449,7 @@ class OpenAIApiClient(
               "description":"Brief description"
             }]
         """.trimIndent()
+        }
     }
     
     private fun parseRecipes(

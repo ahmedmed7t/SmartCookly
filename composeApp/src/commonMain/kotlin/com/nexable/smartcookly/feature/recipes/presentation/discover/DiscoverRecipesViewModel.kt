@@ -9,6 +9,7 @@ import com.nexable.smartcookly.feature.fridge.data.repository.FridgeRepository
 import com.nexable.smartcookly.feature.recipes.data.model.Recipe
 import com.nexable.smartcookly.feature.recipes.data.repository.RecipeRepository
 import com.nexable.smartcookly.feature.recipes.presentation.DiscoveryMode
+import com.nexable.smartcookly.navigation.QuickMealsCache
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,12 +37,30 @@ class DiscoverRecipesViewModel(
                 println("DiscoverRecipesViewModel: Starting recipe discovery...")
                 println("DiscoverRecipesViewModel: Mode = $discoveryMode, Cuisines = ${cuisines.map { it.displayName }}")
                 
+                // Check cache for QUICK_MEALS mode
+                if (discoveryMode == DiscoveryMode.QUICK_MEALS) {
+                    val cachedRecipes = QuickMealsCache.getRecipes()
+                    if (cachedRecipes != null && cachedRecipes.isNotEmpty()) {
+                        println("DiscoverRecipesViewModel: Using cached quick meals recipes (${cachedRecipes.size} recipes)")
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            recipes = cachedRecipes,
+                            error = null
+                        )
+                        return@launch
+                    }
+                }
+                
                 // Load user preferences
                 val onboardingData = appPreferences.loadOnboardingData()
                 println("DiscoverRecipesViewModel: Loaded preferences - dietary: ${onboardingData.selectedDietaryStyle}, level: ${onboardingData.selectedCookingLevel}")
                 
-                // Get fridge items
-                val fridgeItems = fridgeRepository.getAllItems()
+                // Get fridge items (not used for QUICK_MEALS mode)
+                val fridgeItems = if (discoveryMode == DiscoveryMode.QUICK_MEALS) {
+                    emptyList() // Don't use fridge items for quick meals
+                } else {
+                    fridgeRepository.getAllItems()
+                }
                 println("DiscoverRecipesViewModel: Fridge has ${fridgeItems.size} items")
                 
                 // Call repository
@@ -50,10 +69,10 @@ class DiscoverRecipesViewModel(
                     discoveryMode = discoveryMode,
                     cuisines = cuisines,
                     fridgeItems = fridgeItems,
-                    dietaryStyle = onboardingData.selectedDietaryStyle,
-                    avoidedIngredients = onboardingData.avoidedIngredients,
-                    dislikedIngredients = onboardingData.dislikedIngredients,
-                    cookingLevel = onboardingData.selectedCookingLevel
+                    dietaryStyle = if (discoveryMode == DiscoveryMode.QUICK_MEALS) null else onboardingData.selectedDietaryStyle,
+                    avoidedIngredients = if (discoveryMode == DiscoveryMode.QUICK_MEALS) emptySet() else onboardingData.avoidedIngredients,
+                    dislikedIngredients = if (discoveryMode == DiscoveryMode.QUICK_MEALS) emptySet() else onboardingData.dislikedIngredients,
+                    cookingLevel = if (discoveryMode == DiscoveryMode.QUICK_MEALS) null else onboardingData.selectedCookingLevel
                 )
                 
                 println("DiscoverRecipesViewModel: Got API response")
@@ -61,6 +80,13 @@ class DiscoverRecipesViewModel(
                 when (result) {
                     is com.nexable.smartcookly.netwrokUtils.Result.Success -> {
                         println("DiscoverRecipesViewModel: Success! Got ${result.data.size} recipes")
+                        
+                        // Cache recipes for QUICK_MEALS mode
+                        if (discoveryMode == DiscoveryMode.QUICK_MEALS) {
+                            QuickMealsCache.storeRecipes(result.data)
+                            println("DiscoverRecipesViewModel: Cached quick meals recipes")
+                        }
+                        
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
                             recipes = result.data,

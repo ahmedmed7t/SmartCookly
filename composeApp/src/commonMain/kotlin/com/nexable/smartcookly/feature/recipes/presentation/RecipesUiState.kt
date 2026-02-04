@@ -15,7 +15,8 @@ data class RecipesUiState(
 enum class DiscoveryMode {
     PREFERENCES,
     FRIDGE,
-    BOTH
+    BOTH,
+    QUICK_MEALS
 }
 
 enum class CuisineContext {

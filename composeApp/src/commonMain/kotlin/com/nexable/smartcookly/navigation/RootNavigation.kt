@@ -180,6 +180,9 @@ fun RootNavigation() {
                     onNavigateToAddShoppingItem = {
                         navController.navigate(Screen.AddShoppingItem.route)
                     },
+                    onNavigateToQuickMeals = {
+                        navController.navigate(Screen.DiscoverRecipes.route)
+                    },
                     fridgeRefreshKey = fridgeRefreshKey,
                     onFridgeRefresh = {
                         fridgeRefreshKey++

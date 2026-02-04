@@ -6,9 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -25,7 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.fridge.data.model.FreshStatus
 import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import com.nexable.smartcookly.feature.shopping.data.model.ShoppingItem
-import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -366,191 +362,147 @@ private fun UrgentShoppingItemCard(item: ShoppingItem) {
     }
 }
 
-data class CookingTip(
-    val emoji: String,
-    val title: String,
-    val description: String
-)
-
-private val cookingTips = listOf(
-    CookingTip(
-        emoji = "🌿",
-        title = "Freeze Herbs",
-        description = "Freeze herbs in olive oil for instant flavor"
-    ),
-    CookingTip(
-        emoji = "🥚",
-        title = "Room Temp Eggs",
-        description = "Room temperature eggs whip better"
-    ),
-    CookingTip(
-        emoji = "🍝",
-        title = "Salt Pasta Water",
-        description = "Salt pasta water like the sea"
-    ),
-    CookingTip(
-        emoji = "🥩",
-        title = "Rest Meat",
-        description = "Rest meat after cooking for juicier results"
-    ),
-    CookingTip(
-        emoji = "👨‍🍳",
-        title = "Mise en Place",
-        description = "Prep before you cook for smoother cooking"
-    )
-)
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CookingTipsCarousel(
+fun QuickMealsBanner(
+    onDiscoverClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pagerState = rememberPagerState(pageCount = { cookingTips.size })
-    
-    // Auto-advance every 5 seconds
-    LaunchedEffect(pagerState.currentPage) {
-        delay(5000)
-        if (pagerState.currentPage < cookingTips.size - 1) {
-            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-        } else {
-            pagerState.animateScrollToPage(0)
-        }
-    }
-    
-    Column(modifier = modifier.fillMaxWidth()) {
-        // Section Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "💡",
-                fontSize = 20.sp
-            )
-            Text(
-                text = "Cooking Tips",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        
-        // Pager
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp),
-            pageSpacing = 0.dp,
-            beyondViewportPageCount = 0
-        ) { page ->
-            CookingTipCard(
-                tip = cookingTips[page],
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
-        }
-        
-        // Dot Indicators
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(cookingTips.size) { iteration ->
-                val page = pagerState.currentPage
-                val isSelected = page == iteration
-                val color = if (isSelected) PrimaryGreen else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                val size = if (isSelected) 8.dp else 6.dp
-                
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(size)
-                        .clip(CircleShape)
-                        .background(color)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CookingTipCard(
-    tip: CookingTip,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        color = Color(0xFF16664A), // Dark green background matching AICookingBanner
+        shadowElevation = 4.dp
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            PrimaryGreen.copy(alpha = 0.08f),
-                            WarmOrange.copy(alpha = 0.05f)
-                        )
-                    )
-                )
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
+            // Background decorative element
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .align(Alignment.BottomEnd)
+                    .size(120.dp)
+                    .offset(x = 20.dp, y = 20.dp)
+                    .background(
+                        Color.White.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(50)
+                    )
+            )
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
             ) {
-                // Emoji
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    PrimaryGreen.copy(alpha = 0.2f),
-                                    PrimaryGreen.copy(alpha = 0.1f)
+                Column {
+                    // Top section with feature tag
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        // Feature tag
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "⚡",
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = "QUICK & EASY",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        
+                        // Time tag
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFF1E7F5C), // Slightly lighter green
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF16cb8a)) // Light green dot
                                 )
-                            ),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = tip.emoji,
-                        fontSize = 32.sp
-                    )
-                }
-                
-                // Content
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = tip.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = tip.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
-                    )
+                                Text(
+                                    text = "15 min",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Main content
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Quick & Easy Meals",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            lineHeight = 32.sp
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = "Ready in under 15 minutes\nPerfect for busy days.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.9f),
+                            lineHeight = 20.sp
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Discover Now Button
+                    Button(
+                        onClick = onDiscoverClick,
+                        modifier = Modifier.height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color(0xFF16664A)
+                        )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Discover Now",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF16664A)
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = "→",
+                                fontSize = 20.sp,
+                                color = Color(0xFF16664A),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                    }
                 }
             }
         }

@@ -25,6 +25,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
+import com.nexable.smartcookly.data.local.AppPreferences
+import com.nexable.smartcookly.feature.recipes.presentation.DiscoveryMode
+import com.nexable.smartcookly.navigation.DiscoveryParams
+import com.nexable.smartcookly.navigation.DiscoveryParamsCache
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -43,8 +47,10 @@ fun HomeScreen(
     onFavoritesClick: () -> Unit = {},
     onNavigateToFridge: () -> Unit = {},
     onNavigateToShopping: () -> Unit = {},
+    onQuickMealsClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     authRepository: AuthRepository = koinInject(),
+    appPreferences: AppPreferences = koinInject(),
     viewModel: HomeViewModel = koinInject()
 ) {
     val greeting = getGreeting()
@@ -82,28 +88,46 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // Expiring Soon Section - only show if there are items
-            if (uiState.expiringItems.isNotEmpty()) {
-                ExpiringSoonSection(
-                    items = uiState.expiringItems,
-                    onNavigateToFridge = onNavigateToFridge,
+            if (uiState.expiringItems.isNotEmpty() || uiState.urgentShoppingItems.isNotEmpty()) {
+                // Expiring Soon Section - only show if there are items
+                if (uiState.expiringItems.isNotEmpty()) {
+                    ExpiringSoonSection(
+                        items = uiState.expiringItems,
+                        onNavigateToFridge = onNavigateToFridge,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                // Urgent Shopping Section - only show if there are items
+                if (uiState.urgentShoppingItems.isNotEmpty()) {
+                    UrgentShoppingSection(
+                        items = uiState.urgentShoppingItems,
+                        onNavigateToShopping = onNavigateToShopping,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            } else {
+                // Quick & Easy Meals Banner
+                QuickMealsBanner(
+                    onDiscoverClick = {
+                        // Load user's preferred cuisines
+                        val onboardingData = appPreferences.loadOnboardingData()
+                        val cuisines = onboardingData.selectedCuisines
+
+                        // Store discovery params in cache
+                        DiscoveryParamsCache.storeParams(
+                            DiscoveryParams(
+                                discoveryMode = DiscoveryMode.QUICK_MEALS,
+                                cuisines = cuisines
+                            )
+                        )
+
+                        // Navigate to discover recipes screen
+                        onQuickMealsClick()
+                    },
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
-
-            // Urgent Shopping Section - only show if there are items
-            if (uiState.urgentShoppingItems.isNotEmpty()) {
-                UrgentShoppingSection(
-                    items = uiState.urgentShoppingItems,
-                    onNavigateToShopping = onNavigateToShopping,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            // Cooking Tips Carousel
-            CookingTipsCarousel(
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
 
             // Bottom spacing
             Spacer(modifier = Modifier.height(16.dp))
@@ -162,7 +186,8 @@ private fun HomeHeader(
                             contentDescription = null,
                             contentScale = ContentScale.FillBounds,
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.size(38.dp).align(Alignment.TopCenter).padding(top = 4.dp)
+                            modifier = Modifier.size(38.dp).align(Alignment.TopCenter)
+                                .padding(top = 4.dp)
                         )
 
 

@@ -49,6 +49,7 @@ fun AppNavigation(
     onNavigateToDiscoverRecipes: () -> Unit = {},
     onNavigateToFavorites: () -> Unit = {},
     onNavigateToAddShoppingItem: () -> Unit = {},
+    onNavigateToQuickMeals: () -> Unit = {},
     fridgeRefreshKey: Int = 0,
     onFridgeRefresh: () -> Unit = {}
 ) {
@@ -139,6 +140,9 @@ fun AppNavigation(
                     },
                     onNavigateToShopping = {
                         navController.navigate(Screen.Shopping.route)
+                    },
+                    onQuickMealsClick = {
+                        onNavigateToQuickMeals()
                     }
                 )
             }

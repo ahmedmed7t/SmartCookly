@@ -57,7 +57,8 @@ fun CookingModeScreen(
         viewModel.loadCookingSteps(
             recipeName = recipe.name, 
             ingredients = recipe.ingredients,
-            preLoadedSteps = recipe.cookingSteps
+            preLoadedSteps = recipe.cookingSteps,
+            recipeId = recipe.id
         )
     }
 
@@ -123,7 +124,11 @@ fun CookingModeScreen(
                     ErrorState(
                         error = uiState.error!!,
                         onRetry = {
-                            viewModel.loadCookingSteps(recipe.name, recipe.ingredients)
+                            viewModel.loadCookingSteps(
+                                recipeName = recipe.name,
+                                ingredients = recipe.ingredients,
+                                recipeId = recipe.id
+                            )
                         }
                     )
                 }
