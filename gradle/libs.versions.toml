@@ -30,6 +30,7 @@ multiplatformSettings = "1.2.0"
 googleid = "1.1.1"
 credentials = "1.5.0"
 coil = "3.1.0"
+revenuecat = "2.4.0"
 
 
 [libraries]
@@ -76,6 +77,7 @@ androidx-credentials-play = { module = "androidx.credentials:credentials-play-se
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+revenuecat-purchases-kmp-core = { module = "com.revenuecat.purchases:purchases-kmp-core", version.ref = "revenuecat" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

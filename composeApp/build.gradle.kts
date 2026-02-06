@@ -81,6 +81,9 @@ kotlin {
             // Coil for async image loading
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+            
+            // RevenueCat for subscription management
+//            implementation(libs.revenuecat.purchases.kmp.core)
 
         }
         iosMain.dependencies {

@@ -23,8 +23,16 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_heart
+import smartcookly.composeapp.generated.resources.ic_youtube
+import com.nexable.smartcookly.platform.rememberOpenUrl
 
 private val PrimaryGreen = Color(0xFF16664A)
+
+// Helper function to create YouTube search URL from recipe name
+private fun createYouTubeSearchUrl(recipeName: String): String {
+    val query = "how to cook $recipeName".replace(" ", "+")
+    return "https://www.youtube.com/results?search_query=$query"
+}
 
 @Composable
 fun RecipeDetailsScreen(
@@ -40,6 +48,7 @@ fun RecipeDetailsScreen(
     var showShoppingDialog by remember { mutableStateOf(false) }
     var selectedIngredient by remember { mutableStateOf("") }
     val shoppingUiState by shoppingViewModel.uiState.collectAsState()
+    val openUrl = rememberOpenUrl()
     
     // Close dialog when item is successfully added
     LaunchedEffect(shoppingUiState.isAdding) {
@@ -227,49 +236,72 @@ fun RecipeDetailsScreen(
                 )
             }
             
-            // Start Cooking Button
-            Button(
-                onClick = onStartCooking,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryGreen,
-                    contentColor = Color.White
-                ),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 4.dp,
-                    pressedElevation = 2.dp
-                )
+            // Start Cooking Button and YouTube Button Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "👨‍🍳",
-                        fontSize = 24.sp
+                // Start Cooking Button (takes most width)
+                Button(
+                    onClick = onStartCooking,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryGreen,
+                        contentColor = Color.White
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 2.dp
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(
-                        horizontalAlignment = Alignment.Start
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Ready to Cook?",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 11.sp,
-                            color = Color.White.copy(alpha = 0.9f)
+                            text = "👨‍🍳",
+                            fontSize = 24.sp
                         )
-                        Text(
-                            text = "Let's Start Cooking!",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                text = "Ready to Cook?",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                            Text(
+                                text = "Let's Start Cooking!",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
                     }
+                }
+                
+                // YouTube Button (always show - search URL always works)
+                IconButton(
+                    onClick = { openUrl(createYouTubeSearchUrl(recipe.name)) },
+                    modifier = Modifier.size(56.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color(0xFFE62117), // YouTube red
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_youtube),
+                        contentDescription = "Watch on YouTube",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
             }
             
