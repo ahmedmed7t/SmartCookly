@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.nexable.smartcookly.data.local.AppPreferences
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.user.data.repository.UserRepository
+import com.revenuecat.purchases.kmp.Purchases
+import com.revenuecat.purchases.kmp.ktx.awaitLogIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -89,6 +91,14 @@ class SignUpViewModel(
                     authRepository.updateProfile(displayName).fold(
                         onSuccess = {
                             syncUserData(user?.uid)
+                            // Login to RevenueCat with Firebase UID
+                            user?.uid?.let { uid ->
+                                try {
+                                    Purchases.sharedInstance.awaitLogIn(uid)
+                                } catch (e: Exception) {
+                                    println("RevenueCat login failed: ${e.message}")
+                                }
+                            }
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 isSignUpSuccess = true,
@@ -98,6 +108,14 @@ class SignUpViewModel(
                         onFailure = { error ->
                             // Profile update failed, but user is still created
                             syncUserData(user?.uid)
+                            // Login to RevenueCat with Firebase UID
+                            user?.uid?.let { uid ->
+                                try {
+                                    Purchases.sharedInstance.awaitLogIn(uid)
+                                } catch (e: Exception) {
+                                    println("RevenueCat login failed: ${e.message}")
+                                }
+                            }
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 isSignUpSuccess = true,

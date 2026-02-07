@@ -1,17 +1,20 @@
 package com.nexable.smartcookly.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -22,13 +25,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
+import com.nexable.smartcookly.feature.fridge.data.model.FridgeItem
 import com.nexable.smartcookly.feature.fridge.presentation.fridge.FridgeScreen
 import com.nexable.smartcookly.feature.fridge.presentation.review.ReviewScanScreen
 import com.nexable.smartcookly.feature.home.presentation.HomeScreen
 import com.nexable.smartcookly.feature.profile.presentation.edit.*
 import com.nexable.smartcookly.feature.recipes.presentation.RecipesScreen
 import com.nexable.smartcookly.feature.shopping.presentation.ShoppingScreen
+import com.nexable.smartcookly.feature.subscription.data.SubscriptionRepository
 import com.nexable.smartcookly.platform.CameraLauncher
 import com.nexable.smartcookly.platform.getActivityContext
 import org.jetbrains.compose.resources.DrawableResource
@@ -42,20 +46,17 @@ import smartcookly.composeapp.generated.resources.ic_shopping_cart
 
 @Composable
 fun AppNavigation(
-    onLogout: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToAddIngredient: () -> Unit = {},
-    onNavigateToEditIngredient: (com.nexable.smartcookly.feature.fridge.data.model.FridgeItem) -> Unit = {},
+    onNavigateToEditIngredient: (FridgeItem) -> Unit = {},
     onNavigateToDiscoverRecipes: () -> Unit = {},
     onNavigateToFavorites: () -> Unit = {},
     onNavigateToAddShoppingItem: () -> Unit = {},
     onNavigateToQuickMeals: () -> Unit = {},
-    fridgeRefreshKey: Int = 0,
-    onFridgeRefresh: () -> Unit = {}
+    onNavigateToPaywall: () -> Unit = {},
+    fridgeRefreshKey: Int = 0
 ) {
     val navController = rememberNavController()
-    val authRepository: AuthRepository = koinInject()
-    val scope = rememberCoroutineScope()
     var profileRefreshKey by remember { mutableStateOf(0) }
     
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -184,9 +185,49 @@ fun AppNavigation(
             }
             
             composable(Screen.Recipes.route) {
-                com.nexable.smartcookly.feature.recipes.presentation.RecipesScreen(
-                    onNavigateToDiscoverRecipes = onNavigateToDiscoverRecipes
-                )
+                val subscriptionRepository: SubscriptionRepository = koinInject()
+                var isProUser by remember { mutableStateOf<Boolean?>(null) }
+                var refreshKey by remember { mutableStateOf(0) }
+
+                LaunchedEffect(refreshKey) {
+                    isProUser = subscriptionRepository.isProUser()
+                }
+
+                when (isProUser) {
+                    null -> {
+                        // Loading state while checking subscription
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    true -> {
+                        RecipesScreen(onNavigateToDiscoverRecipes = onNavigateToDiscoverRecipes)
+                    }
+                    false -> {
+                        // Navigate to standalone Paywall screen (outside bottom nav)
+                        LaunchedEffect(Unit) {
+                            onNavigateToPaywall()
+                            // Navigate back to Home so when paywall closes, user is on Home
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                        // Show loading while navigating
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
             }
             
             composable(Screen.Shopping.route) {

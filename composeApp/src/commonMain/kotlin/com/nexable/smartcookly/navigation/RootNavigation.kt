@@ -1,5 +1,17 @@
 package com.nexable.smartcookly.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -7,26 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.nexable.smartcookly.data.local.AppPreferences
-import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
-import com.nexable.smartcookly.feature.auth.presentation.LoginScreen
-import com.nexable.smartcookly.feature.auth.presentation.SignUpScreen
-import com.nexable.smartcookly.feature.onboarding.presentation.LoginEncouragementScreen
-import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingScreen
-import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
-import com.nexable.smartcookly.feature.profile.presentation.edit.*
-import com.nexable.smartcookly.feature.favorites.presentation.FavoritesScreen
-import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientScreen
-import com.nexable.smartcookly.feature.shopping.presentation.add.AddShoppingItemScreen
-import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesScreen
-import com.nexable.smartcookly.feature.recipes.presentation.discover.RecipeDetailsScreen
-import com.nexable.smartcookly.feature.recipes.presentation.cooking.CookingModeScreen
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,11 +29,34 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.nexable.smartcookly.data.local.AppPreferences
+import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
+import com.nexable.smartcookly.feature.auth.presentation.LoginScreen
+import com.nexable.smartcookly.feature.auth.presentation.SignUpScreen
+import com.nexable.smartcookly.feature.favorites.presentation.FavoritesScreen
+import com.nexable.smartcookly.feature.fridge.presentation.add.AddIngredientScreen
+import com.nexable.smartcookly.feature.onboarding.presentation.LoginEncouragementScreen
+import com.nexable.smartcookly.feature.onboarding.presentation.OnboardingScreen
+import com.nexable.smartcookly.feature.profile.presentation.ProfileScreen
+import com.nexable.smartcookly.feature.profile.presentation.edit.EditAllergiesScreen
+import com.nexable.smartcookly.feature.profile.presentation.edit.EditCookingLevelScreen
+import com.nexable.smartcookly.feature.profile.presentation.edit.EditCuisinesScreen
+import com.nexable.smartcookly.feature.profile.presentation.edit.EditDietaryScreen
+import com.nexable.smartcookly.feature.profile.presentation.edit.EditDislikedScreen
+import com.nexable.smartcookly.feature.profile.presentation.edit.EditHealthScreen
+import com.nexable.smartcookly.feature.recipes.presentation.cooking.CookingModeScreen
+import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesScreen
+import com.nexable.smartcookly.feature.recipes.presentation.discover.RecipeDetailsScreen
+import com.nexable.smartcookly.feature.shopping.presentation.add.AddShoppingItemScreen
+import com.nexable.smartcookly.feature.subscription.presentation.CustomerCenterScreen
+import com.nexable.smartcookly.feature.subscription.presentation.PaywallScreen
+import com.revenuecat.purchases.kmp.Purchases
+import com.revenuecat.purchases.kmp.ktx.awaitLogOut
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 import smartcookly.composeapp.generated.resources.Res
 import smartcookly.composeapp.generated.resources.ic_back
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 
 @Composable
 fun RootNavigation() {
@@ -152,14 +167,6 @@ fun RootNavigation() {
             
             composable(Screen.App.route) {
                 AppNavigation(
-                    onLogout = {
-                        // Navigate to login and clear entire back stack
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(0) {
-                                inclusive = true
-                            }
-                        }
-                    },
                     onNavigateToProfile = {
                         navController.navigate(Screen.Profile.route)
                     },
@@ -183,10 +190,10 @@ fun RootNavigation() {
                     onNavigateToQuickMeals = {
                         navController.navigate(Screen.DiscoverRecipes.route)
                     },
-                    fridgeRefreshKey = fridgeRefreshKey,
-                    onFridgeRefresh = {
-                        fridgeRefreshKey++
-                    }
+                    onNavigateToPaywall = {
+                        navController.navigate(Screen.Paywall.route)
+                    },
+                    fridgeRefreshKey = fridgeRefreshKey
                 )
             }
             
@@ -239,9 +246,18 @@ fun RootNavigation() {
                     onEditCookingLevel = {
                         navController.navigate(Screen.EditCookingLevel.route)
                     },
+                    onManageSubscription = {
+                        navController.navigate(Screen.CustomerCenter.route)
+                    },
                     onLogout = {
                         scope.launch {
                             authRepository.signOut()
+                            // Logout from RevenueCat (revert to anonymous)
+                            try {
+                                Purchases.sharedInstance.awaitLogOut()
+                            } catch (e: Exception) {
+                                println("RevenueCat logout failed: ${e.message}")
+                            }
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(0) {
                                     inclusive = true
@@ -361,6 +377,22 @@ fun RootNavigation() {
                                 inclusive = true
                             }
                         }
+                    }
+                )
+            }
+            
+            composable(Screen.Paywall.route) {
+                PaywallScreen(
+                    onDismiss = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            
+            composable(Screen.CustomerCenter.route) {
+                CustomerCenterScreen(
+                    onDismiss = {
+                        navController.popBackStack()
                     }
                 )
             }

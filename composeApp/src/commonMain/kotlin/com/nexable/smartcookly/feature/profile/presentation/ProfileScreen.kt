@@ -36,7 +36,6 @@ import smartcookly.composeapp.generated.resources.ic_ingredients
 import smartcookly.composeapp.generated.resources.ic_level
 import smartcookly.composeapp.generated.resources.ic_menu
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onEditCuisines: () -> Unit,
@@ -45,6 +44,7 @@ fun ProfileScreen(
     onEditDisliked: () -> Unit,
     onEditHealth: () -> Unit,
     onEditCookingLevel: () -> Unit,
+    onManageSubscription: () -> Unit = {},
     onLogout: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ProfileViewModel = koinInject(),
@@ -330,6 +330,35 @@ fun ProfileScreen(
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
+
+                // Manage Subscription button
+                OutlinedButton(
+                    onClick = onManageSubscription,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "💳",
+                            fontSize = 18.sp
+                        )
+                        Text(
+                            text = "Manage Subscription",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Logout button
                 Button(

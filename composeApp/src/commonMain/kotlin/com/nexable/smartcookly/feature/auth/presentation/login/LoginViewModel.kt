@@ -6,6 +6,8 @@ import com.nexable.smartcookly.data.local.AppPreferences
 import com.nexable.smartcookly.feature.auth.data.GoogleSignInProvider
 import com.nexable.smartcookly.feature.auth.data.repository.AuthRepository
 import com.nexable.smartcookly.feature.user.data.repository.UserRepository
+import com.revenuecat.purchases.kmp.Purchases
+import com.revenuecat.purchases.kmp.ktx.awaitLogIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,6 +54,14 @@ class LoginViewModel(
             result.fold(
                 onSuccess = { user ->
                     syncUserData(user?.uid)
+                    // Login to RevenueCat with Firebase UID
+                    user?.uid?.let { uid ->
+                        try {
+                            Purchases.sharedInstance.awaitLogIn(uid)
+                        } catch (e: Exception) {
+                            println("RevenueCat login failed: ${e.message}")
+                        }
+                    }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isLoginSuccess = true,
@@ -93,6 +103,14 @@ class LoginViewModel(
                                 // Fallback: try to update profile (though Google should have set it)
                                 // This is a safety measure
                                 syncUserData(user?.uid)
+                            }
+                            // Login to RevenueCat with Firebase UID
+                            user?.uid?.let { uid ->
+                                try {
+                                    Purchases.sharedInstance.awaitLogIn(uid)
+                                } catch (e: Exception) {
+                                    println("RevenueCat login failed: ${e.message}")
+                                }
                             }
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
