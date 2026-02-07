@@ -7,5 +7,31 @@
   },
   "storage": {
     "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/privacy-policy",
+        "destination": "/privacy-policy.html"
+      },
+      {
+        "source": "/delete-account",
+        "destination": "/delete-account.html"
+      },
+      {
+        "source": "/proposal",
+        "destination": "/proposal.html"
+      },
+      {
+        "source": "/technical-docs",
+        "destination": "/technical-docs.html"
+      }
+    ]
   }
 }

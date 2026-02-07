@@ -17,3 +17,8 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# API Keys and sensitive configuration files
+google-services.json
+GoogleService-Info.plist
+iosApp/Configuration/Config.xcconfig
