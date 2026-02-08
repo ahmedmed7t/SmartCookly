@@ -178,6 +178,10 @@ class LoginViewModel(
                 "Incorrect password. Please try again."
             message.contains("invalid-email", ignoreCase = true) -> 
                 "Please enter a valid email address."
+            message.contains("cancelled", ignoreCase = true) -> 
+                "Sign-in was cancelled."
+            message.contains("No Google account", ignoreCase = true) -> 
+                message // Pass through the friendly message
             message.contains("network", ignoreCase = true) -> 
                 "Network error. Please check your internet connection."
             message.contains("too-many-requests", ignoreCase = true) -> 

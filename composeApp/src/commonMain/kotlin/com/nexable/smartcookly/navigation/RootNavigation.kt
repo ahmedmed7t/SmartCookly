@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -48,6 +49,7 @@ import com.nexable.smartcookly.feature.recipes.presentation.cooking.CookingModeS
 import com.nexable.smartcookly.feature.recipes.presentation.discover.DiscoverRecipesScreen
 import com.nexable.smartcookly.feature.recipes.presentation.discover.RecipeDetailsScreen
 import com.nexable.smartcookly.feature.shopping.presentation.add.AddShoppingItemScreen
+import com.nexable.smartcookly.feature.subscription.data.SubscriptionRepository
 import com.nexable.smartcookly.feature.subscription.presentation.CustomerCenterScreen
 import com.nexable.smartcookly.feature.subscription.presentation.PaywallScreen
 import com.revenuecat.purchases.kmp.Purchases
@@ -63,6 +65,7 @@ fun RootNavigation() {
     val navController = rememberNavController()
     val appPreferences: AppPreferences = koinInject()
     val authRepository: AuthRepository = koinInject()
+    val subscriptionRepository: SubscriptionRepository = koinInject()
     val scope = rememberCoroutineScope()
     var profileRefreshKey by remember { mutableStateOf(0) }
     var fridgeRefreshKey by remember { mutableStateOf(0) }
@@ -188,7 +191,22 @@ fun RootNavigation() {
                         navController.navigate(Screen.AddShoppingItem.route)
                     },
                     onNavigateToQuickMeals = {
-                        navController.navigate(Screen.DiscoverRecipes.route)
+                        scope.launch {
+                            val isProUser = subscriptionRepository.isProUser()
+                            if (isProUser) {
+                                navController.navigate(Screen.DiscoverRecipes.route)
+                            } else {
+                                navController.navigate(Screen.Paywall.route)
+                                // Navigate back to Home so when paywall closes, user is on Home
+                                navController.navigate(Screen.App.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        }
                     },
                     onNavigateToPaywall = {
                         navController.navigate(Screen.Paywall.route)

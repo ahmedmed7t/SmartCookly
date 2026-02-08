@@ -1,6 +1,7 @@
 package com.nexable.smartcookly.feature.onboarding.data.model
 
 enum class Ingredient(val displayName: String, val emoji: String) {
+    NOTHING("Nothing", "✨"),
     PEANUTS("Peanuts", "🥜"),
     TREE_NUTS("Tree Nuts", "🌰"),
     MILK("Milk (Dairy)", "🥛"),

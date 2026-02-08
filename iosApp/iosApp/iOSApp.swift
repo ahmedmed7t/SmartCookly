@@ -9,9 +9,11 @@ struct iOSApp: App {
         FirebaseApp.configure()
         InitKoinKt.doInitKoin()
         
+        let revenueCatApiKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_API_KEY") as? String ?? ""
+        
         Purchases.logLevel = .debug
         Purchases.configure(
-            with: .builder(withAPIKey: "test_iLsCsQkMfQTdbXoZCiKWieECQkb")
+            with: .builder(withAPIKey: revenueCatApiKey)
                 .build()
         )
     }

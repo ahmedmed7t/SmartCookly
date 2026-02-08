@@ -33,7 +33,6 @@ import smartcookly.composeapp.generated.resources.ic_email
 import smartcookly.composeapp.generated.resources.ic_google
 import smartcookly.composeapp.generated.resources.ic_launcher_playstore
 import smartcookly.composeapp.generated.resources.ic_lock
-import smartcookly.composeapp.generated.resources.ic_login_logo
 import smartcookly.composeapp.generated.resources.ic_next
 import smartcookly.composeapp.generated.resources.ic_visibility
 import smartcookly.composeapp.generated.resources.ic_visibility_off
@@ -42,7 +41,6 @@ import smartcookly.composeapp.generated.resources.ic_visibility_off
 fun LoginScreen(
     onLoginSuccess: () -> Unit = {},
     onSignUpClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = koinViewModel()
 ) {

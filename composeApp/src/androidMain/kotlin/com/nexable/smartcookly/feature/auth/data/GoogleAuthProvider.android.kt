@@ -1,11 +1,10 @@
 package com.nexable.smartcookly.feature.auth.data
 
 import android.app.Activity
-import android.content.Context
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import kotlinx.coroutines.Dispatchers
@@ -20,24 +19,22 @@ actual class GoogleSignInProvider actual constructor(context: Any) {
     
     actual suspend fun signIn(): Result<GoogleAuthCredential> {
         return try {
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(webClientId)
+            val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(webClientId)
                 .build()
             
             val request = GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
+                .addCredentialOption(signInWithGoogleOption)
                 .build()
             
             val credentialManager = androidx.credentials.CredentialManager.create(activity)
-            
+
             val result = withContext(Dispatchers.Main) {
                 credentialManager.getCredential(
                     context = activity,
                     request = request
                 )
             }
-            
+
             val credential = result.credential
             
             when {
@@ -45,7 +42,7 @@ actual class GoogleSignInProvider actual constructor(context: Any) {
                 credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
                     val googleIdTokenCredential = GoogleIdTokenCredential
                         .createFrom(credential.data)
-                    
+
                     Result.success(
                         GoogleAuthCredential(
                             idToken = googleIdTokenCredential.idToken,

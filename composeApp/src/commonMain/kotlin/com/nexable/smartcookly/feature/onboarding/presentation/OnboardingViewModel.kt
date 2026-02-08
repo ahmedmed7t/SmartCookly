@@ -157,12 +157,27 @@ class OnboardingViewModel(
             _uiState.value = _uiState.value.copy(
                 showOtherIngredientTextField = showOther,
                 avoidedIngredients = if (showOther) {
-                    currentSelected.apply { add(ingredient) }
+                    currentSelected.apply { 
+                        add(ingredient)
+                        remove(Ingredient.NOTHING) // Remove NOTHING when selecting OTHER
+                    }
                 } else {
                     currentSelected.apply { remove(ingredient) }
                 }
             )
+        } else if (ingredient == Ingredient.NOTHING) {
+            // When NOTHING is selected, clear all other selections
+            if (currentSelected.contains(Ingredient.NOTHING)) {
+                currentSelected.clear()
+            } else {
+                currentSelected.clear()
+                currentSelected.add(Ingredient.NOTHING)
+                _uiState.value = _uiState.value.copy(showOtherIngredientTextField = false)
+            }
+            _uiState.value = _uiState.value.copy(avoidedIngredients = currentSelected)
         } else {
+            // When any other ingredient is selected, remove NOTHING if present
+            currentSelected.remove(Ingredient.NOTHING)
             if (currentSelected.contains(ingredient)) {
                 currentSelected.remove(ingredient)
             } else {
@@ -192,12 +207,27 @@ class OnboardingViewModel(
             _uiState.value = _uiState.value.copy(
                 showOtherDislikedIngredientTextField = showOther,
                 dislikedIngredients = if (showOther) {
-                    currentSelected.apply { add(ingredient) }
+                    currentSelected.apply { 
+                        add(ingredient)
+                        remove(DislikedIngredient.NOTHING) // Remove NOTHING when selecting OTHER
+                    }
                 } else {
                     currentSelected.apply { remove(ingredient) }
                 }
             )
+        } else if (ingredient == DislikedIngredient.NOTHING) {
+            // When NOTHING is selected, clear all other selections
+            if (currentSelected.contains(DislikedIngredient.NOTHING)) {
+                currentSelected.clear()
+            } else {
+                currentSelected.clear()
+                currentSelected.add(DislikedIngredient.NOTHING)
+                _uiState.value = _uiState.value.copy(showOtherDislikedIngredientTextField = false)
+            }
+            _uiState.value = _uiState.value.copy(dislikedIngredients = currentSelected)
         } else {
+            // When any other ingredient is selected, remove NOTHING if present
+            currentSelected.remove(DislikedIngredient.NOTHING)
             if (currentSelected.contains(ingredient)) {
                 currentSelected.remove(ingredient)
             } else {
@@ -223,12 +253,27 @@ class OnboardingViewModel(
             _uiState.value = _uiState.value.copy(
                 showOtherDiseaseTextField = showOther,
                 selectedDiseases = if (showOther) {
-                    currentSelected.apply { add(disease) }
+                    currentSelected.apply { 
+                        add(disease)
+                        remove(Disease.NOTHING) // Remove NOTHING when selecting OTHER
+                    }
                 } else {
                     currentSelected.apply { remove(disease) }
                 }
             )
+        } else if (disease == Disease.NOTHING) {
+            // When NOTHING is selected, clear all other selections
+            if (currentSelected.contains(Disease.NOTHING)) {
+                currentSelected.clear()
+            } else {
+                currentSelected.clear()
+                currentSelected.add(Disease.NOTHING)
+                _uiState.value = _uiState.value.copy(showOtherDiseaseTextField = false)
+            }
+            _uiState.value = _uiState.value.copy(selectedDiseases = currentSelected)
         } else {
+            // When any other disease is selected, remove NOTHING if present
+            currentSelected.remove(Disease.NOTHING)
             if (currentSelected.contains(disease)) {
                 currentSelected.remove(disease)
             } else {

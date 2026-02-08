@@ -1,6 +1,7 @@
 package com.nexable.smartcookly.feature.onboarding.data.model
 
 enum class Disease(val displayName: String, val description: String, val emoji: String) {
+    NOTHING("Nothing", "No health conditions", "✨"),
     DIABETES("Diabetes", "Blood sugar must be controlled", "💉"),
     HYPERTENSION("Hypertension", "Salt intake should be limited", "❤️‍🩹"),
     HEART_DISEASE("Heart Disease", "Low fat, low salt diet", "🫀"),

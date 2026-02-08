@@ -93,10 +93,26 @@ class EditPreferenceViewModel(
     }
     
     fun toggleAvoidedIngredient(ingredient: Ingredient) {
-        _avoidedIngredients.value = if (_avoidedIngredients.value.contains(ingredient)) {
-            _avoidedIngredients.value - ingredient
+        val currentSelected = _avoidedIngredients.value.toMutableSet()
+        
+        if (ingredient == Ingredient.NOTHING) {
+            // When NOTHING is selected, clear all other selections
+            if (currentSelected.contains(Ingredient.NOTHING)) {
+                currentSelected.clear()
+            } else {
+                currentSelected.clear()
+                currentSelected.add(Ingredient.NOTHING)
+            }
+            _avoidedIngredients.value = currentSelected
         } else {
-            _avoidedIngredients.value + ingredient
+            // When any other ingredient is selected, remove NOTHING if present
+            currentSelected.remove(Ingredient.NOTHING)
+            if (currentSelected.contains(ingredient)) {
+                currentSelected.remove(ingredient)
+            } else {
+                currentSelected.add(ingredient)
+            }
+            _avoidedIngredients.value = currentSelected
         }
     }
     
@@ -105,10 +121,26 @@ class EditPreferenceViewModel(
     }
     
     fun toggleDislikedIngredient(ingredient: DislikedIngredient) {
-        _dislikedIngredients.value = if (_dislikedIngredients.value.contains(ingredient)) {
-            _dislikedIngredients.value - ingredient
+        val currentSelected = _dislikedIngredients.value.toMutableSet()
+        
+        if (ingredient == DislikedIngredient.NOTHING) {
+            // When NOTHING is selected, clear all other selections
+            if (currentSelected.contains(DislikedIngredient.NOTHING)) {
+                currentSelected.clear()
+            } else {
+                currentSelected.clear()
+                currentSelected.add(DislikedIngredient.NOTHING)
+            }
+            _dislikedIngredients.value = currentSelected
         } else {
-            _dislikedIngredients.value + ingredient
+            // When any other ingredient is selected, remove NOTHING if present
+            currentSelected.remove(DislikedIngredient.NOTHING)
+            if (currentSelected.contains(ingredient)) {
+                currentSelected.remove(ingredient)
+            } else {
+                currentSelected.add(ingredient)
+            }
+            _dislikedIngredients.value = currentSelected
         }
     }
     
@@ -117,10 +149,26 @@ class EditPreferenceViewModel(
     }
     
     fun toggleDisease(disease: Disease) {
-        _selectedDiseases.value = if (_selectedDiseases.value.contains(disease)) {
-            _selectedDiseases.value - disease
+        val currentSelected = _selectedDiseases.value.toMutableSet()
+        
+        if (disease == Disease.NOTHING) {
+            // When NOTHING is selected, clear all other selections
+            if (currentSelected.contains(Disease.NOTHING)) {
+                currentSelected.clear()
+            } else {
+                currentSelected.clear()
+                currentSelected.add(Disease.NOTHING)
+            }
+            _selectedDiseases.value = currentSelected
         } else {
-            _selectedDiseases.value + disease
+            // When any other disease is selected, remove NOTHING if present
+            currentSelected.remove(Disease.NOTHING)
+            if (currentSelected.contains(disease)) {
+                currentSelected.remove(disease)
+            } else {
+                currentSelected.add(disease)
+            }
+            _selectedDiseases.value = currentSelected
         }
     }
     

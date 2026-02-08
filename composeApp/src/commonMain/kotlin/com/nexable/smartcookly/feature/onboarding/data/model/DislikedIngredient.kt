@@ -1,6 +1,7 @@
 package com.nexable.smartcookly.feature.onboarding.data.model
 
 enum class DislikedIngredient(val displayName: String, val emoji: String) {
+    NOTHING("Nothing", "✨"),
     PORK("Pork", "🥩"),
     ONIONS("Onions", "🧅"),
     GARLIC("Garlic", "🧄"),

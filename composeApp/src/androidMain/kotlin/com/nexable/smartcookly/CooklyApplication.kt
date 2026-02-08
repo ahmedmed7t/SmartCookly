@@ -19,7 +19,7 @@ class CooklyApplication: Application() {
         Purchases.logLevel = LogLevel.DEBUG
         Purchases.configure(
             PurchasesConfiguration.Builder(
-                apiKey = "goog_mhdXMqTIWPhyXKTPvgsTkGQytEK"
+                apiKey = BuildConfig.REVENUECAT_API_KEY
             ).build()
         )
     }
