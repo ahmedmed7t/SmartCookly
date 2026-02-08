@@ -197,14 +197,6 @@ fun RootNavigation() {
                                 navController.navigate(Screen.DiscoverRecipes.route)
                             } else {
                                 navController.navigate(Screen.Paywall.route)
-                                // Navigate back to Home so when paywall closes, user is on Home
-                                navController.navigate(Screen.App.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
                             }
                         }
                     },

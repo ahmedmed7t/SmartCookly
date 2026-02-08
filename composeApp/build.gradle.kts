@@ -115,8 +115,8 @@ android {
         applicationId = "com.nexable.smartcookly"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 9
-        versionName = "1.0.2"
+        versionCode = 11
+        versionName = "1.0.4"
 
         // Load API keys from local.properties
         val localProperties = Properties().apply {
